@@ -1,0 +1,2459 @@
+Aug22-SET2-NCS-JAVA-B
+STARTED ON 13-Sept-2022
+--------------------------------------------------------------------------------------------------------------------------------------
+Java 11 Essentials                       4   https://academy.onwingspan.com/en/app/toc/lex_auth_01282407495720140868291_shared/overview/
+Java 11 Beyond Basics                    5
+https://academy.onwingspan.com/en/app/toc/lex_auth_0129939212951879681138_shared/overview/
+Service Layer using Spring               2          
+https://academy.onwingspan.com/en/app/toc/lex_7482544978385832000_shared/contents/
+Persistence Layer using Spring Data      4
+REST API using Spring                    3
+Microservice - An Overview               2
+Total                                    20
+
+--------------------------------------------------------------------------------------------------------------------------------------
+Service Layer using Spring                         2
+Persistence Layer using Spring Data                4
+REST API using Spring                              3
+Microservice - An Overview                         2
+--------------------------------------------------------------------------------------------------------------------------------------
+Q We learn core java . Why I should learn Spring and how it will help in developing an enterprise application?
+A Core java is fine till we develop a single standalone application which is running on a single system and at the most
+  supporting user.
+
+Functional requirements ====> Actually the modules without which the application is
+not useable.
+Non-Functional requirements:=====> additional features which enhances the quality of the application like security of user's data.
+   Quick reponsetime, availabilty.
+
+There are certain things which are common for all the enterprise applications and those features/code can be created and 
+provided in advance and the similar kind of oppertunities are given by spring framework. 
+------------------------------------------------------------------------------------------------------------------------------------
+From now we have to plan for developing enterprise ( business application) where only knowledge and understanding of core java wont do.So Framework like Spring always give us the execution environment and also some core templates( codes ) beforehand which we 
+dont have to write and those kind of codes are repeatedly used in all the enterprise application. 
+-----------------------------------------------------------------------------------------------------------------------
+Client Tier========>Presentation=================>Business=======>Persistence=============> Database
+----------------------------------------------------------------------------------------------------------------------------
+*  Spring Rest
+*  Spring Core/POJO ( Plain Old Java Object)
+*  Spring DATA JPA ( Java Persistence API)/Hibernate
+*  AOP ( Aspect Oriented Programming )
+-----------------------------------------------------------------------------------------------------------------------------------
+*Spring Core/POJO ====> Spring Core ( Basic Spring Framework related code)====>Business Tier
+*AOP ================> Helper concept to the Business Tier
+* Spring Data========> Persistence Tier
+*Spring Rest========> Presentation
+
+Currently the below is not our concern:-
+HTML/CSS/Angular/React=====>Client Tier          
+------------------------------------------------------------------------------------------------------------------------------------
+Let us create an application for registering customer and displaying the details of the customers who are already registered.
+We will store the data in an ArrayList. 
+
+myshop
+  ----com.myshop.dao
+  ----com.myshop.service
+  ----com.myshop.service.validator
+  ----com.myshop.exception
+  ----com.myshop.model
+  ----com.myshop.userinterface
+---------------------------------------------------------------------------------------------------------------------------------
+Whenever we are creating a maven project we should mention:-
+*group-id
+*artifact-id
+*version    ( We can select whatever being shown as a default)
+*packaging  ( We can check whether it is showing jar as a default one)
+--------------------------------------------------------------------------------------------------------------------------
+
+Let us first create the classes which we think is independent on any other class which is user defined.
+
+package com.myshop.exception;
+
+public class CustomerException extends Exception {
+    public CustomerException(String message) {
+    	super(message); // Parent class constructor is invoked.
+    	// Here the parent class is Exception
+    }
+}
+
+package com.myshop.model;
+
+import java.time.LocalDate;
+
+public class Customer {
+private String customerId;
+private String customerName;
+private long mobileNumber;
+private LocalDate dateOfBirth;
+
+
+
+public Customer() {
+	super();
+	
+}
+public Customer(String customerId, String customerName, long mobileNumber, LocalDate dateOfBirth) {
+	super();
+	this.customerId = customerId;
+	this.customerName = customerName;
+	this.mobileNumber = mobileNumber;
+	this.dateOfBirth = dateOfBirth;
+}
+public String getCustomerId() {
+	return customerId;
+}
+public void setCustomerId(String customerId) {
+	this.customerId = customerId;
+}
+public String getCustomerName() {
+	return customerName;
+}
+public void setCustomerName(String customerName) {
+	this.customerName = customerName;
+}
+public long getMobileNumber() {
+	return mobileNumber;
+}
+public void setMobileNumber(long mobileNumber) {
+	this.mobileNumber = mobileNumber;
+}
+public LocalDate getDateOfBirth() {
+	return dateOfBirth;
+}
+public void setDateOfBirth(LocalDate dateOfBirth) {
+	this.dateOfBirth = dateOfBirth;
+}
+
+
+
+@Override
+public int hashCode() {
+	final int prime = 31;
+	int result = 1;
+	result = prime * result + ((customerId == null) ? 0 : customerId.hashCode());
+	result = prime * result + ((customerName == null) ? 0 : customerName.hashCode());
+	result = prime * result + ((dateOfBirth == null) ? 0 : dateOfBirth.hashCode());
+	result = prime * result + (int) (mobileNumber ^ (mobileNumber >>> 32));
+	return result;
+}
+@Override
+public boolean equals(Object obj) {
+	if (this == obj)
+		return true;
+	if (obj == null)
+		return false;
+	if (getClass() != obj.getClass())
+		return false;
+	Customer other = (Customer) obj;
+	if (customerId == null) {
+		if (other.customerId != null)
+			return false;
+	} else if (!customerId.equals(other.customerId))
+		return false;
+	if (customerName == null) {
+		if (other.customerName != null)
+			return false;
+	} else if (!customerName.equals(other.customerName))
+		return false;
+	if (dateOfBirth == null) {
+		if (other.dateOfBirth != null)
+			return false;
+	} else if (!dateOfBirth.equals(other.dateOfBirth))
+		return false;
+	if (mobileNumber != other.mobileNumber)
+		return false;
+	return true;
+}
+@Override
+public String toString() {
+	return "Customer [customerId=" + customerId + ", customerName=" + customerName + ", mobileNumber=" + mobileNumber
+			+ ", dateOfBirth=" + dateOfBirth + "]";
+}
+
+}
+
+----------------------------------------------------------------------------------------------------
+id====>
+name====>
+mobileno===>
+dob=====>
+
+package com.myshop.service.validator;
+
+import java.time.LocalDate;
+import com.myshop.exception.CustomerException;
+import com.myshop.model.Customer;
+
+public class Validator {
+	/*
+	 * Validate method in turn will call or invoke boolean validateId(String
+	 * customerId) boolean validateName(String customerName) boolean
+	 * validateMobileNumber(long mobileNumber) boolean validateDob(LocalDate dob)
+	 * and if all the members are validated successfully. it will return nothing but
+	 * if we have error with any one of the data it will throw CustomerException (
+	 * User defined one)
+	 * 
+	 */
+
+	public void validate(Customer customer) throws CustomerException {
+		String errorMessage = ""; // empty string
+		if (!validateId(customer.getCustomerId())) {
+			errorMessage += "Id should start with C followed by 3 digits";
+		}
+
+		if (!validateName(customer.getCustomerName())) {
+			errorMessage += "Name should start with uppercase and can have firstname,middlename and lastname or firstname and lastname";
+		}
+
+		if (!validateMobileNumber(customer.getMobileNumber())) {
+			errorMessage += "Mobile number should have 10 digits";
+		}
+		if (!validateDob(customer.getDateOfBirth())) {
+			errorMessage += "Mobile number should have 10 digits";
+		}
+        if(!errorMessage.isEmpty()) {
+        	throw new CustomerException(errorMessage);
+        }
+	}
+
+	// customerId should start with C followed by 3 digits
+	// Invalid escape sequence (valid ones are \b \t \n \f \r \" \' \\ )
+	boolean validateId(String customerId) {
+		String regex = "C\\d{3}";
+		if (customerId.matches(regex)) {
+			return true;
+		}
+		// return customerId.matches(regex);
+		// return custmerId.matches(regex)?true:false;
+		return false;
+
+	}
+
+	// Name will have firstname middlename lastname
+	// firstname lastname
+	// First character of all the name parts should be in uppercase
+	boolean validateName(String customerName) {
+		String regex = "([A-Z][a-z]+)(\\s[A-Z][a-z]+){1,2}";
+		return customerName.matches(regex) ? true : false;
+
+	}
+
+	// Should be of 10 digits
+	boolean validateMobileNumber(long mobileNumber) {
+		String strMobile = String.valueOf(mobileNumber);
+		return strMobile.length() == 10 ? true : false;
+	}
+
+	// dob should be less than current date
+	boolean validateDob(LocalDate dob) {
+		LocalDate today = LocalDate.now();
+		return dob.isBefore(today) ? true : false;
+	}
+
+}
+---------------------------------------------------------------------------------------------
+package com.myshop.exception;
+
+public class CustomerException extends Exception {
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 6752307295690970142L;
+
+	public CustomerException(String message) {
+    	super(message); // Parent class constructor is invoked.
+    	// Here the parent class is Exception
+    }
+}
+
+-------------------------------------------------------------------------------------
+package com.myshop.model;
+
+import java.time.LocalDate;
+
+public class Customer {
+private String customerId;
+private String customerName;
+private long mobileNumber;
+private LocalDate dateOfBirth;
+
+
+
+public Customer() {
+	super();
+	
+}
+public Customer(String customerId, String customerName, long mobileNumber, LocalDate dateOfBirth) {
+	super();
+	this.customerId = customerId;
+	this.customerName = customerName;
+	this.mobileNumber = mobileNumber;
+	this.dateOfBirth = dateOfBirth;
+}
+public String getCustomerId() {
+	return customerId;
+}
+public void setCustomerId(String customerId) {
+	this.customerId = customerId;
+}
+public String getCustomerName() {
+	return customerName;
+}
+public void setCustomerName(String customerName) {
+	this.customerName = customerName;
+}
+public long getMobileNumber() {
+	return mobileNumber;
+}
+public void setMobileNumber(long mobileNumber) {
+	this.mobileNumber = mobileNumber;
+}
+public LocalDate getDateOfBirth() {
+	return dateOfBirth;
+}
+public void setDateOfBirth(LocalDate dateOfBirth) {
+	this.dateOfBirth = dateOfBirth;
+}
+
+
+
+@Override
+public int hashCode() {
+	final int prime = 31;
+	int result = 1;
+	result = prime * result + ((customerId == null) ? 0 : customerId.hashCode());
+	result = prime * result + ((customerName == null) ? 0 : customerName.hashCode());
+	result = prime * result + ((dateOfBirth == null) ? 0 : dateOfBirth.hashCode());
+	result = prime * result + (int) (mobileNumber ^ (mobileNumber >>> 32));
+	return result;
+}
+@Override
+public boolean equals(Object obj) {
+	if (this == obj)
+		return true;
+	if (obj == null)
+		return false;
+	if (getClass() != obj.getClass())
+		return false;
+	Customer other = (Customer) obj;
+	if (customerId == null) {
+		if (other.customerId != null)
+			return false;
+	} else if (!customerId.equals(other.customerId))
+		return false;
+	if (customerName == null) {
+		if (other.customerName != null)
+			return false;
+	} else if (!customerName.equals(other.customerName))
+		return false;
+	if (dateOfBirth == null) {
+		if (other.dateOfBirth != null)
+			return false;
+	} else if (!dateOfBirth.equals(other.dateOfBirth))
+		return false;
+	if (mobileNumber != other.mobileNumber)
+		return false;
+	return true;
+}
+@Override
+public String toString() {
+	return "Customer [customerId=" + customerId + ", customerName=" + customerName + ", mobileNumber=" + mobileNumber
+			+ ", dateOfBirth=" + dateOfBirth + "]";
+}
+
+}
+
+-------------------------------------------------------------------------------------------------------------------
+
+
+package com.myshop.dao;
+
+import java.util.List;
+
+import com.myshop.exception.CustomerException;
+import com.myshop.model.Customer;
+
+public interface CustomerDAO {
+
+	
+	public String addCustomer(Customer customer) throws CustomerException;
+    public List<Customer> displayCustomers() throws CustomerException;
+    
+}
+
+----------------------------------------------------------------------------------------------------------
+package com.myshop.dao;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import com.myshop.exception.CustomerException;
+import com.myshop.model.Customer;
+
+public class CustomerDAOImpl implements CustomerDAO {
+	private List<Customer> customerList = new ArrayList();
+
+	// We have to add the customers to a List(ArrayList)
+	public String addCustomer(Customer customer) throws CustomerException {
+
+		customerList.add(customer);
+		// We need to return the id of the customer which got added
+		return customer.getCustomerId();
+	}
+
+	public List<Customer> displayCustomers() throws CustomerException {
+		
+		return customerList;
+	}
+
+}
+------------------------------------------------------------------------------------------------------------
+package com.myshop.service;
+
+import java.util.List;
+
+import com.myshop.exception.CustomerException;
+import com.myshop.model.Customer;
+
+public interface CustomerService {
+	public String addCustomer(Customer customer) throws CustomerException;
+    public List<Customer> displayCustomers() throws CustomerException;
+}
+-------------------------------------------------------------------------------------------------------------------
+package com.myshop.service;
+
+import java.util.List;
+
+import com.myshop.dao.CustomerDAO;
+import com.myshop.dao.CustomerDAOImpl;
+import com.myshop.exception.CustomerException;
+import com.myshop.model.Customer;
+import com.myshop.service.validator.Validator;
+
+public class CustomerServiceImpl implements CustomerService {
+// We should create a reference variable of interface
+// and object of the class which has implemented the interface
+	private CustomerDAO customerDAO=new CustomerDAOImpl();
+	
+	public String addCustomer(Customer customer) throws CustomerException {
+		Validator validate=new Validator();
+		validate.validate(customer);
+		return customerDAO.addCustomer(customer);
+	}
+
+	public List<Customer> displayCustomers() throws CustomerException {
+		if(customerDAO.displayCustomers().isEmpty())
+		{
+			throw new CustomerException("The List is empty");
+		}
+		return customerDAO.displayCustomers();
+	}
+
+}
+
+---------------------------------------------------------------------------------------------------------------------
+
+package com.myshop.userinterface;
+
+import java.time.LocalDate;
+import java.util.List;
+
+import com.myshop.exception.CustomerException;
+import com.myshop.model.Customer;
+import com.myshop.service.CustomerService;
+import com.myshop.service.CustomerServiceImpl;
+
+public class UserInterface {
+
+	private static CustomerService customerService = new CustomerServiceImpl();
+
+	public static void main(String[] args) {
+		// 1) ADD CUSTOMERS
+		addCustomers();
+		// 2) DISPLAY CUSTOMERS
+		displayCustomers();
+
+	}
+
+	private static void displayCustomers() {
+
+		try {
+			List<Customer> customerList = customerService.displayCustomers();
+			for (Customer customer : customerList) {
+				System.out.println(customer.getCustomerId() + " " + customer.getCustomerName());
+
+			}
+		} catch (CustomerException e) {
+
+			System.out.println(e.getMessage());
+		}
+
+	}
+
+	private static void addCustomers() {
+
+		Customer customer = new Customer("C001", "Ravi Kumar", 9876543219L, LocalDate.of(2000, 10, 15));
+		String str;
+		try {
+			str = customerService.addCustomer(customer);
+			System.out.println(str);
+		} catch (CustomerException e) {
+			System.out.println(e.getMessage());
+		}
+
+	}
+
+}
+
+
+
+
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+Why we have to create an object of CustomerService as static in UserInterface class.
+
+A static block or static methods can access only only the static members.
+--------------------------------------------------------------------------------------------------------------------------------------
+Logger===> Logging the error message or successmessages to a file . But when we are using System.out.println() The data is displayed
+in the console and they disappears as the execution stops or we have a new execution. But when we use logger the data can be
+persisted in a file and can be read latter. 
+
+PropertiesConfiguration object is creating a PropertiesConfiguration object and through the getProperty we can read the properties 
+and their respective values.
+-----------------------------------------------------------------------------------------------------------------------------------	
+
+
+
+
+
+
+
+public class CustomerLoginRepositoryImpl {}
+
+
+ CustomerLoginRepositoryImpl customerLoginRepositoryImpl = new CustomerLoginRepositoryImpl();
+
+// In the above line we are creating the reference of the class and object is also of the class CustomerLoginRepositoryImpl.
+
+
+
+public interface CustomerLoginRepository{}
+public class CustomerLoginRepositoryImpl implements CustomerLoginRepository{}
+
+// Interface always brings in loosely coupled code.
+Loosely coupled code is when we have classes like A and B. The class A is dependent on class B.
+So when we are making changes in the class B , in that case if the code is loosely coupled we dont
+have to make major changes in the code of A.
+
+public class ListOfNames {
+
+     private ArrayList<String> list=new ArrayList<>();
+
+     public void addNames(String name){
+         list.add(name);
+     }
+
+    public ArrayList<String> getList(){
+      return list;
+    }
+
+   }
+
+  public class Main {
+    public static void main(String args[]){
+      Scanner scan=new Scanner(System.in);
+      ListOfNames names=new ListOfNames();
+      String name=scan.next();
+      names.addNames(name);
+      ArrayList<String> list=names.getList();
+    
+
+   }
+ }
+
+// If  we decide that from ArrayList we have to make it as LinkedList, 
+it has to be changed in multiple places. 
+
+public class ListOfNames {
+
+     private LinkedList<String> list=new LinkedList<>();   ----> First change (2 changes)
+
+     public void addNames(String name){
+         list.add(name);
+     }
+
+    public ArrayList<String> getList(){   -----> Second change ( 1 Change)
+      return list;
+    }
+
+   }
+
+  public class Main {
+    public static void main(String args[]){
+      Scanner scan=new Scanner(System.in);
+      ListOfNames names=new ListOfNames();
+      String name=scan.next();
+      names.addNames(name);
+      ArrayList<String> list=names.getList();  -----> Third change ( 1 Change)
+    
+
+   }
+ }
+
+But in place of creating the reference of The class type , if we create the reference of interface type,
+we dont have to make much changes.
+
+import java.util.List;
+import java.util.ArrayList;
+public class ListOfNames {
+
+     private List<String> list=new ArrayList<String>();
+
+     public void addNames(String name){
+         list.add(name);
+     }
+
+    public List<String> getList(){
+      return list;
+    }
+
+   }
+
+  public class Main {
+    public static void main(String args[]){
+      Scanner scan=new Scanner(System.in);
+      ListOfNames names=new ListOfNames();
+      String name=scan.next();
+      names.addNames(name);
+      List<String> list=names.getList();
+    
+
+   }
+ }
+
+
+import java.util.List;
+import java.util.ArrayList;
+
+public class ListOfNames {
+
+     private List<String> list;
+
+    public ListNames(){   //Constructor to initialise
+    list=new ArrayList<String>();
+    }
+
+     public void addNames(String name){
+         list.add(name);
+     }
+
+    public List<String> getList(){
+      return list;
+    }
+
+   }
+
+  public class Main {
+    public static void main(String args[]){
+      Scanner scan=new Scanner(System.in);
+      ListOfNames names=new ListOfNames();
+      String name=scan.next();
+      names.addNames(name);
+      List<String> list=names.getList();
+    
+
+   }
+
+
+Now convert from ArrayList to LinkedList
+
+public class ListOfNames {
+
+     private List<String> list=new LinkedList<>(); ===> 1 Change
+
+     public void addNames(String name){
+         arrayList.add(name);
+     }
+
+    public List<String> getList(){
+      return list;
+    }
+
+   }
+
+  public class Main {
+    public static void main(String args[]){
+      Scanner scan=new Scanner(System.in);
+      ListOfNames names=new ListOfNames();
+      String name=scan.next();
+      names.addNames(name);
+      List<String> list=names.getList();
+    
+
+   }
+ }
+// This approach is better but still we have a flaw that we have to open the code and make a change in a single place.
+// That also we want to avoid and we want to make the code as fully loose coupled code.
+
+
+--------------------------------------------------------------------------------------------------------------------
+
+
+public class ListOfNames {
+
+     private List<String> list;
+
+
+    public ListOfNames(List list)
+    {
+    this.list=list;
+    }
+
+    public void setList(List list){
+     this.list=list;
+    }
+
+     public void addNames(String name){
+         arrayList.add(name);
+     }
+
+    public List<String> getList(){
+      return list;
+    }
+
+   }
+
+  public class Main {
+    public static void main(String args[]){
+      List<String> list=new LinkedList<>();
+      Scanner scan=new Scanner(System.in);
+      ListOfNames names=new ListOfNames(list);
+      String name=scan.next();
+      names.addNames(name);
+      List<String> list=names.getList();
+    
+
+   }
+ }
+
+// This approach is much better as we dont have to make changes in the ListOfNames class.
+--------------------------------------------------------------------------------------------------------------------------
+What is a framework?
+It is providing us with the execution environment and provide us with the API Application Programming Interface(Classes and Interfaces) related to the relevant framework. 
+So the flow of execution of the code is controlled by the framework. 
+--------------------------------------------------------------------------------------------------------------------------
+Server====> A software which is accepting the user's request and providing the resourse which is asked by the user ( browser/client 
+application).
+
+Web Servers ====> Web Servers will be comparatively smaller in size in application server and require less hardware resource. 
+Apache Tomcat,Jetty 
+Application Servers====> It is much more bigger in size and provides solution for many enterprise requirements. 
+JBOSS,Weblogic,GlassFish
+---------------------------------------------------------------------------------------------------------------------------------
+In our kind of requirement with Spring, we can use the web server.
+
+ Instead, a technique called Dependency Injection (DI) is used. It is a technique in which the responsibility of creating, assembling and wiring the dependencies of a dependent class is externalized to the external framework or library called dependency injection (DI) frameworks. Now the control over the construction, wiring and assembly of an object no longer resides with the dependent classes themselves. This reversal of responsibilities is sometimes also known as Inversion of Control(IoC). Dependency injection framework are also called as IoC containers. 
+
+When a class A is dependent on the object of class B. Then the creation of object B will be done by following the dependency Injection. Which means object will be injected in the code when the object is required during the runtime and it will be done
+by a container ( runtime environment ) called IOC( Inversion of Control) container. Why it is called as Inversion because here
+we are making the Dependent class free from creating the object of the class on which it is dependent.
+-------------------------------------------
+
+public class A{
+
+   private B b; // We are not creating the object but we are just creating the reference variable and we all know the reference
+  variables are created during the compilation time of the code.
+
+   public A(B b){
+     this.b=b;
+   }
+ }
+
+
+
+  IOC container will look that the class A needs the object of class B, then it will create the object of class B and will provide
+the object during the runtime.If it is not so
+
+public class A{
+
+   private B b; 
+
+   public A(B b){
+     this.b=b;
+   }
+ }
+
+public class C{
+  public static void main(String args[]){
+ 
+    B b=new B();
+    A a=new A(b);  
+}
+}
+
+// Both the object are created by the coder while writing the code. 
+---------------------------------------------------------------------------------------------------------------------------------
+IOC containers
+
+BeanFactory interface: It represents container which provides basic functionalities. It instantiates bean whenever asked for by the client application. Using its getBean() method,  you can get instances of beans(objects which are instantiated and their life cycle is controlled by IOC container). It instantiates bean objects only when getBean() method is called.
+
+ApplicationContext interface: It extends BeanFactory interface and provides additional functionalities to support enterprise application development. It instantiates all beans when container is loaded. There are many implementations of this interface. Some commonly used implementation class.
+
+public interface BeanFactory{}
+public interface ApplicationContext extends BeanFactory {}  // One interface will extend another interface and not implement
+
+----------------------------------------------------------------------------------------------------------------------------------
+ClassPathXmlApplicationContext : It is used to process XML-based configuration metadata.
+
+AnnotationConfigApplicationContext : It is used to process Java‐based configuration metadata.
+------------------------------------------------------------------------------------------------------------------------------
+
+So as ApplicationContext and BeanFactory are interfaces we cannot create an object of these interfaces but we can 
+create a reference a variable of the interfaces and store the address/referencce of the object of the class which has implmented
+the interface.
+
+We have classes like ClassPathXmlApplicationContext(XML configuration we are not make use of this) and AnnotationConfigApplicationContext(annotation based and java based configuration which are implementing ApplicationContext
+interface.
+//ApplicationContext context=new AnnotationConfigAppicationContext();
+
+
+Qwhat is the parameter in the constructor of AnnotationConfigApplicationContext?
+A We have a class or we created a user defined class with the name SpringConfig. 
+
+Q Can we have any other name?
+A Yes as it is an user defined class.
+
+Q What this class contains?
+A This class contains the information about the beans/objects which will be created by the IOC container.
+
+
+public class HelloWorld{
+
+  public void greet(){
+   System.out.println("Hello World");
+  }
+}
+
+
+@Configuration  // Configuration is a pre defined annotation which is used to say that the class on which it is applied
+// is a configuration related class which is having the information about the beans/objects which will be created by the
+// IOC container
+public class SpringConfig {	
+	@Bean  // The method below will create an object/bean of HelloWorld class
+	public HelloWorld helloWorld() {  //Method should have return type same as of the class whose object we want to be created 
+                                          // by IOC container
+		return new HelloWorld();
+	}
+}
+
+public class Class{}===> class Class store the reference of the Class type. So example of class type. Welcome.class, Hello.class,Main.class
+
+public class Object{}
+Class classObject=Welcome.class;
+
+public class Tester{
+
+ public static void main(String args[]){
+    //STEP1==> We created an object of IOC container though IOC container ApplicationContext is an interface,
+    // We are creating an object of AnnotationConfigApplicationContext which is a class implementing the interface ApplicationContext
+    // The constructor of AnnotationConfigApplicationContext should have a parameter of type class ( In java we have a class With the name Class). 
+   ApplicationContext ctx = new AnnotationConfigApplicationContext(SpringConfig.class);
+// The above line we are saying that the IOC container should create objects and the information related to the class for the
+// object creation is provided within the class SpringConfig.
+
+Q How come the framework will know that SpringConfig is a configuration class?
+A With the annotation @Configuration.
+
+Q What next after the IOC container is intialised with the information of the configuration class?
+A: We need to get the Bean from the applicationcontext object which is an IOC container.
+
+   HelloWorld hello=ctx.getBean(HelloWorld.class);  // getBean is a method of ApplicationContext which will return an object of the 
+   // bean related class. 
+   OR
+   HelloWorld hello=ctx.getBean("helloWorld"); // Here the parameter is the method name which is creating an object of the bean class.
+   // The above code will give compilation error because return type is of Object type.
+    HelloWorld hello=(HelloWorld)ctx.getBean("helloWorld");
+   // We need to typecast if in the parameter we are passing the method name.
+
+   hello.greet();
+   }
+}
+======================================================================================================================== 
+Java Based creation of bean/object
+
+public class HelloWorld{
+
+  public void greet(){
+   System.out.println("Hello World");
+  }
+}
+
+@Configuration
+public class SpringConfig {	
+	@Bean
+	public HelloWorld helloWorld() {  
+		return new HelloWorld();
+	}
+}
+
+ public class Main{
+ {
+ public static void main(String args[]){
+  
+   ApplicationContext ctx = new AnnotationConfigApplicationContext(SpringConfig.class);
+   HelloWorld hello=ctx.getBean(HelloWorld.class);  
+   hello.greet();
+   }
+}
+
+----------------------------------------------------------------------------------------------------------
+
+Annotations are interfaces ... We have some predefined annotations. @Override is a predefined Annotation.
+We can even create our own annotation. Annnotation are called metadata. 
+
+What is metdata?
+It is data about data. 
+
+For whom we are using this annotations/who will interpret the annotations which we use with class or methods?
+The annotations are interpreted by the runtime environment or by the framework.
+---------------------------------------------------------------------------------------------------------------------------
+
+public @interface Configuration {}
+public interface Calculator{}
+----------------------------------------------------------------------------------------------------------------------------
+Let us see the demo.
+
+1) Let us create a maven project where artifact id will be springdemo1.
+File----->New------>Other------------>Maven project------>skip archetype(by checking the checkbox)
+groupid com.infosys
+artifactid springdemo1
+Click on finish.
+
+2) let use create some packages and classes.
+ 
+  package com.infosys.beans;
+    public class HelloWorld{
+
+  public void greet(){
+   System.out.println("Hello World");
+  }
+ }
+
+
+  package com.infosys.configuration;
+   @Configuration
+   public class SpringConfig {	
+	@Bean
+	public HelloWorld helloWorld() {  
+		return new HelloWorld();
+	}
+    }
+
+
+package com.infosys.userinterface;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import com.infosys.beans.HelloWorld;
+import com.infosys.configuration.SpringConfig;
+public class Main {
+	public static void main(String[] args) {
+	ApplicationContext context=new AnnotationConfigApplicationContext(SpringConfig.class);
+        HelloWorld hw=context.getBean(HelloWorld.class);
+        hw.greet();
+	}
+}
+
+
+  
+// All the annotations like @Configuration and @Bean and the interface like ApplicationContext and the class AnnotationConfigApplicationContext are within the API related to Spring. That we dont get with the Java Runtime.
+
+Q What is the solution?
+A We have to look for the dependencies and update the pom.xml so that it should go for downloading the jar files which is 
+are having the relavant annotations,interface and class.
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.infosys</groupId>
+  <artifactId>springdemo1</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+ <dependencies>
+    <!-- https://mvnrepository.com/artifact/org.springframework/spring-context -->
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-context</artifactId>
+      <version>5.3.23</version>
+    </dependency>
+ </dependencies>
+</project>
+
+Q How I will get the dependency related info?
+A So we have a site which is related with maven repo informations.
+
+---------------------------------------------------------------------------------------------
+Let us practice:
+
+1) Let us create a maven project.
+2) Let us skip archetype.
+3) Let us update pom.xml for dependency. 
+
+<properties>
+      <maven.compiler.source>11</maven.compiler.source>
+    <maven.compiler.target>11</maven.compiler.target>
+</properties>
+
+<properties>
+    <java.version>17</java.version>
+    <maven.compiler.source>${java.version}</maven.compiler.source>
+    <maven.compiler.target>${java.version}</maven.compiler.target>
+</properties>
+
+
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.infosys</groupId>
+  <artifactId>springdemo2</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <properties>
+    <java.version>11</java.version>
+    <maven.compiler.source>${java.version}</maven.compiler.source>
+    <maven.compiler.target>${java.version}</maven.compiler.target>
+</properties>
+  <dependencies>
+    <!-- https://mvnrepository.com/artifact/org.springframework/spring-context -->
+<dependency>
+    <groupId>org.springframework</groupId>
+    <artifactId>spring-context</artifactId>
+    <version>5.3.23</version>
+</dependency>
+ </dependencies>
+</project>
+
+
+
+
+package com.infosys.beans;
+
+public class Calculator {
+private int number1;
+private int number2;
+private int result;
+public int getNumber1() {
+	return number1;
+}
+public void setNumber1(int number1) {
+	this.number1 = number1;
+}
+public int getNumber2() {
+	return number2;
+}
+public void setNumber2(int number2) {
+	this.number2 = number2;
+}
+public int getResult() {
+	return result;
+}
+public void setResult(int result) {
+	this.result = result;
+}
+public int add() {
+	result=number1+number2;
+	return result;
+}
+
+}
+
+
+package com.infosys.configuration;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import com.infosys.beans.Calculator;
+
+@Configuration
+public class SpringConfig {
+     @Bean
+	 public Calculator calculator() {
+		 return new Calculator();
+	 }
+}
+
+package com.infosys.userinterface;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+
+import com.infosys.beans.Calculator;
+import com.infosys.configuration.SpringConfig;
+
+public class Tester {
+
+	public static void main(String[] args) {
+	ApplicationContext applicationContext=new AnnotationConfigApplicationContext(SpringConfig.class);
+	Calculator calc=(Calculator)applicationContext.getBean("mycalculator");//The return type is Object type so we have to typecast
+	calc.setNumber1(1);
+	calc.setNumber2(10);
+	System.out.println(calc.add());
+
+	}
+
+}
+
+So the difference in the approach from core java coding:
+
+* In core java if we would have created the object of Calculator in main , we should have gone for writing
+  Calculator calc=new Calculator();
+  Than who is creating the object in the current related application?
+  IOC container is creating the object.
+  What is the name of the IOC container which we used in the program?
+  ApplicationContext
+  ApplicationContext is an interface so how we are getting an object of IOC container?
+  We created an object of AnnotationApplicationContext which implemented the interface ApplicationContext.
+  While creating the object of IOC container, what we are passing as a parameter to the constructor?
+  Class object of SpringConfig.
+  What SpringConfig class contains?
+  A method which is annotated with @Bean returns an object or bean.
+  What are the annotations which you have used in the Configuration class?
+  @Configuration at class level and @Bean at method level
+  What is the method of ApplicationContext which is returning a bean object?
+  getBean
+  What are the different parameters the getBean method can accept?
+  1) The class object of the bean class.
+  2) method name of the method annoted with @Bean.
+  3) bean name mentioned as @Bean(name="beanname")
+----------------------------------------------------------------------------------------------------------------------
+ Final variables we should write in uppercase.
+ 
+public static final Log LOGGER = LogFactory.getLog(UserInterface.class); 
+
+// Create an object of Log with the help of LogFactory getLog method. The getLog method should be intialised with the object of class
+for which you want to log the message.
+LOGGER.info(welcomeBean.printWelcome());
+---------------------------------------------------------------------------------------------------------------
+ Java annotation-based configuration:-
+
+Let us see the changes:- With the bean class we are going to make use of the class level annotation called @Component.
+   
+ package com.infosys.beans;
+    @Component
+    public class HelloWorld{
+
+  public void greet(){
+   System.out.println("Hello World");
+  }
+ }
+
+ package com.infosys.configuration;
+   @Configuration
+   @ComponentScan(basePackages="com.infosys.beans")  // This annotation is used to inform the IOC container that the class which is
+       // annoted with @Component is available within the backage com.infosys.beans
+   public class SpringConfig {	}
+
+
+package com.infosys.userinterface;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import com.infosys.beans.HelloWorld;
+import com.infosys.configuration.SpringConfig;
+public class Main {
+	public static void main(String[] args) {
+	ApplicationContext context=new AnnotationConfigApplicationContext(SpringConfig.class);
+        HelloWorld hw=(HelloWorld)context.getBean("helloWorld");  // With the class which is annotated with @Component, make the
+       // first character in smallcase and use with the getBean
+        hw.greet();
+	}
+}
+
+The changes:-
+1) We annotated the Bean class with the Annotation @Component.
+2) Within the configuration class, we used another annotation called @ComponentScan where we mentioned the package name of the class
+which is annotated with @Component.
+3) Within the SpringConfig class we dont have to go for any @Bean declaration.
+----------------------------------------------------------------------------------------------------------------------------------
+Properties file with Spring Application:
+
+1) Create a properties file in the resource folder.
+messages.properties
+message=Hello Friends!!!!
+data=10
+str=welcome
+
+2) Creating a configuration class.
+package com.infosys.configuration;
+
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
+
+@Configuration
+@PropertySource("classpath:messages.properties")
+public class SpringConfig {
+
+}
+
+
+
+2)
+package com.infosys.userinterface;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.core.env.Environment;
+
+import com.infosys.configuration.SpringConfig;
+
+public class Tester {
+
+	public static void main(String[] args) {
+
+
+        ApplicationContext context=new AnnotationConfigApplicationContext(SpringConfig.class);
+        Environment env=context.getEnvironment();
+        System.out.println(env.getProperty("message"));
+        System.out.println(env.getProperty("data"));
+        System.out.println(env.getProperty("str"));
+	}
+
+}
+
+* creating the properties file
+* using @PropertySource annotation in the class which is annotated with @Configuration
+* Getting an object of Environment through the container application context.
+* Using the getProperty of Environment to read the property/key from the properties file which is under resource folder.
+
+---------------------------------------------------------------------------------------------------------------------
+Stereotype annotations
+
+            @Component ( Generic annotation) 
+   
+@Service      @Controller      @Repository ====> 
+----------------------------------------------------------------------------------------------------------------------------------
+Some of the best practices that should be followed in Java-Annotation based configuration are:
+
+Use specialized stereotypes and NOT generic stereotype
+As you have seen previously, @Component is a 'generic' stereotype for any Spring-managed bean or component. We also derive @Service, @Repository and @Controller from @Component, which are 'specialized' stereotypes used for classes implementing Service, Persistence and Controller layers respectively.
+
+@Component can be used interchangeably with any of the above derived specific stereotypes and there will not be any significant issue or complication to the application. However, it is a best practice to use the specific stereotypes for their respective layer implementations (which is @Service for Service Layer, @Repository for Persistence Layer and @Controller for Controller Layer).
+
+Annotate ONLY classes and NOT interfaces
+We should always annotate only the classes (and/or it's methods) and not the interface which it implements as Java does not allow the implementing classes to inherit the interfaces which are annotated. Hence, it is a good practice to avoid annotating the interfaces.
+--------------------------------------------------------------------------------------------------------------------------
+
+  public class Address {
+    private int hNo;
+    private String locality;
+    private String city;
+
+    // setters/getters
+   }
+
+  public class Employee {
+   private int id;
+   private String name;
+   private Address address;
+    // setters/getters
+ 
+  }
+ 
+-------------------------------------------------------------------------------------------------
+IOC container
+framework
+Annotation
+dependency injection
+loosely coupled code
+metadatype
+logging
+AOP
+beanFactory
+properties
+features of spring
+auto wiring
+ApplicationContext interface
+DAO
+server web server and applocation server
+DTO
+best practises
+@Configuration
+Java based Configuration
+Class class
+@Component
+AnnotaionConfigApplicationContext
+typecast object
+@Repository
+stereotype annotation
+dependencies
+Non-Invasive
+@ComponentScan
+default names 
+@PropertySouce
+@Service
+@Controller
+getBean()
+Environment
+------------------------------------------------------------------------------------------------------------------------
+
+
+
+public class Address {}
+public class Employee {
+private Address address;
+
+public Employee(Address address){
+  this.address=address;
+ }
+
+public void setAddress(Address address){
+  this.address=address;
+}
+}
+
+public class Tester{
+  public static void main(String args[]){
+     Address address=new Address();
+     address.setHno(1);
+     address.setLocality("Netaji Nagar");
+     Employee employee=new Employee(address);
+     address=employee.getAddress();
+     System.out.println(employee.getId());
+     System.out.println(employee.getName());
+     System.out.println(address.getHno());
+     System.out.println(address.getLocality());
+   }
+}
+// Being a a coder we are wiring(association) the objects.
+---------------------------------------------------------------------------------------------------------------------
+
+To do autowiring, you can use @Autowired annotation. This annotation allows Spring IoC container to resolve and inject dependencies into your bean. It can be applied to attributes, constructors, setter methods of a bean class. 
+
+
+package com.infosys.beans;
+import org.springframework.stereotype.Component;
+@Component
+public class Address {
+	private int hNo;
+	private String locality;
+	private String city;
+	public int gethNo() {
+		return hNo;
+	}
+	public void sethNo(int hNo) {
+		this.hNo = hNo;
+	}
+	public String getLocality() {
+		return locality;
+	}
+	public void setLocality(String locality) {
+		this.locality = locality;
+	}
+	public String getCity() {
+		return city;
+	}
+	public void setCity(String city) {
+		this.city = city;
+	}
+
+}
+
+
+package com.infosys.beans;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+@Component(value="empdetails")
+public class Employee {
+private int empId;
+private String name;
+@Autowired
+private Address address;
+
+
+public int getEmpId() {
+	return empId;
+}
+public void setEmpId(int empId) {
+	this.empId = empId;
+}
+public String getName() {
+	return name;
+}
+public void setName(String name) {
+	this.name = name;
+}
+public Address getAddress() {
+	return address;
+}
+public void setAddress(Address address) {
+	this.address = address;
+}
+
+
+
+
+}
+
+
+public class Tester {
+
+	public static void main(String[] args) {
+	    ApplicationContext context=new AnnotationConfigApplicationContext(SpringConfiguration.class);	
+            //Employee employee=new Employee();
+       	    Employee employee=context.getBean(Employee.class); // Returning an object/bean of Employee class.
+           // Employee employee=(Employee)context.getBean("employee");
+           // Employee employee=(Employee)context.getBean("empdetails");
+	    Address address=employee.getAddress(); // Dont create an object
+	    // during the coding and let IOC container take the responsibility
+	    // of creating the Employee object and the Address object
+	    address.sethNo(111);
+	    address.setLocality("Netaji Nagar");
+	    address.setCity("Delhi");
+	    employee.setEmpId(1);
+	    employee.setName("Juben");
+	    System.out.println(employee.getEmpId());
+	    System.out.println(employee.getName());
+	    System.out.println(address.gethNo());
+	    System.out.println(address.getLocality());
+	    System.out.println(address.getCity());
+	}
+
+}
+
+
+------------------------------------------------------------------------------------------------------------------
+If we dont use the @Autowired to address what will happen
+In the below approach Employee is not having any association with Address
+and they are identified as seperate beans
+public class Tester {
+
+	public static void main(String[] args) {
+		ApplicationContext context=new AnnotationConfigApplicationContext(SpringConfiguration.class);	
+	    Employee employee=context.getBean(Employee.class);
+	    Address address=context.getBean(Address.class);
+	  
+	    //Address address=employee.getAddress(); // Dont create an object
+	    // during the coding and let IOC container take the responsibility
+	    // of creating the Employee object and the Address object
+	   address.sethNo(111);
+	   address.setLocality("Netaji Nagar");
+	   address.setCity("Delhi");
+	    employee.setEmpId(1);
+	    employee.setName("Juben");
+	    System.out.println(employee.getEmpId());
+	    System.out.println(employee.getName());
+	    System.out.println(address.gethNo());
+	    System.out.println(address.getLocality());
+	    System.out.println(address.getCity());
+	}
+
+}
+-----------------------------------------------------------------------------------------
+If we dont use the @Autowired to address what will happen
+we get NullPointerException
+public class Tester {
+
+	public static void main(String[] args) {
+		ApplicationContext context=new AnnotationConfigApplicationContext(SpringConfiguration.class);	
+	    Employee employee=context.getBean(Employee.class);
+	    public class Tester {
+
+	public static void main(String[] args) {
+		ApplicationContext context=new AnnotationConfigApplicationContext(SpringConfiguration.class);	
+	    Employee employee=context.getBean(Employee.class);
+	 
+	    Address address=employee.getAddress(); // Dont create an object
+	    // during the coding and let IOC container take the responsibility
+	    // of creating the Employee object and the Address object
+	   address.sethNo(111);
+	   address.setLocality("Netaji Nagar");
+	   address.setCity("Delhi");
+	    employee.setEmpId(1);
+	    employee.setName("Juben");
+	    System.out.println(employee.getEmpId());
+	    System.out.println(employee.getName());
+	    System.out.println(address.gethNo());
+	    System.out.println(address.getLocality());
+	    System.out.println(address.getCity());
+	}
+
+}
+	  
+	    //Address address=employee.getAddress(); // Dont create an object
+	    // during the coding and let IOC container take the responsibility
+	    // of creating the Employee object and the Address object
+	   address.sethNo(111);
+	   address.setLocality("Netaji Nagar");
+	   address.setCity("Delhi");
+	    employee.setEmpId(1);
+	    employee.setName("Juben");
+	    System.out.println(employee.getEmpId());
+	    System.out.println(employee.getName());
+	    System.out.println(address.gethNo());
+	    System.out.println(address.getLocality());
+	    System.out.println(address.getCity());
+	}
+
+}
+
+In above code, Spring container will perform dependency injection using the Java Reflection API(searching Reflection API in Java).
+
+
+public interface Interface{}
+
+@Component(value="object1")
+public class Class1 implements Interface{}
+
+@Component(value="object2")
+public class Class2 implements Interface{}
+
+@Component
+public class MyClass{
+  @Autowired
+  @Qualifier("object2")
+  private Interface interface;  //Here the container is confused which object to autowire , is it of Class1 or Class2
+
+----------------------------------------------------------------------------------------------------------------------------------
+Autowiring through attribute springdemo6
+Autowiring through setter method springdemo7
+Autowiring throug constructor springdemo8
+---------------------------------
+
+Tester=====>Controller=====>Service====Repository
+
+-------------------------------
+
+https://start.spring.io/
+
+After creating the Spring Boot project with Spring Initializer.
+We have to extract project because it is downloaded as zip file. 
+
+
+
+package com.infy;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+@SpringBootApplication
+public class DemoSpringBootApplication  {
+	
+	public static void main(String[] args) {
+		SpringApplication.run(DemoSpringBootApplication.class, args);
+	}
+}
+--------------------------------------------------------------------------------------------------------------------------
+package com.example.demo;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class DemoApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(DemoApplication.class, args);
+		System.out.println("My spring boot application is up");
+	}
+
+}
+
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>2.7.4</version>
+		<relativePath/> <!-- lookup parent from repository -->
+	</parent>
+	<groupId>com.example</groupId>
+	<artifactId>demo</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>demo</name>
+	<description>Demo project for Spring Boot</description>
+	<properties>
+		<java.version>11</java.version>
+	</properties>
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>
+
+------------------------------------------------------------------------------------------------------------------------
+The @SpringBootApplication annotation indicates that it is a configuration class and also triggers auto-configuration and component scanning. It is a combination of the following annotations with their default attributes:
+
+@EnableAutoConfiguration – This annotation enables auto-configuration for Spring Boot application which automatically configures your application based on the dependencies that you have added.
+
+@ComponentScan – This enables Spring bean dependency injection feature by using @Autowired annotation. All application components which are annotated with @Component, @Service, @Repository or @Controller are automatically registered as Spring Beans. These beans can be injected by using @Autowired annotation.
+
+@Configuration – This enables Java based configurations for Spring boot application. 
+
+----------------------------------------------------------------------------------------------------------------------
+Spring Boot Runners
+
+package com.example.demo.component;
+
+import org.springframework.stereotype.Component;
+
+
+@Component
+public class HelloWorld {
+public void display() {
+	System.out.println("Hello World");
+}
+}
+
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import com.example.demo.component.HelloWorld;
+import org.springframework.beans.factory.annotation.Autowired;
+
+@SpringBootApplication
+public class DemoApplication implements CommandLineRunner{
+
+	@Autowired
+	private HelloWorld world;
+
+	public static void main(String[] args) {
+ 
+		SpringApplication.run(DemoApplication.class, args);
+		//System.out.println("My spring boot application is up");
+	}
+
+	@Override
+	public void run(String... args) throws Exception {
+	  greet();
+		
+	}
+
+	private void greet() {
+        world.display();	
+     }
+   
+}
+package com.example.demo;
+
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+import com.example.demo.component.HelloWorld;
+import org.springframework.beans.factory.annotation.Autowired;
+
+@SpringBootApplication
+public class DemoApplication implements CommandLineRunner{
+
+	@Autowired
+	private HelloWorld world;
+
+	
+	public static void main(String[] args) {
+ 
+		SpringApplication.run(DemoApplication.class, args);
+		//System.out.println("My spring boot application is up");
+	}
+
+	@Override
+	public void run(String... args) throws Exception {
+	  greet();
+	  hello();
+		
+	}
+
+	private void hello() {
+		System.out.println("I am the hello method");
+		
+	}
+
+	private void greet() {
+    world.display();	
+		
+	}
+
+}
+
+// run is a method of CommandLineRunner interface which we need to override in out Application class if our SpringBootApplication
+is implementing the CommandLineRunner. So the run method is basically to start accessing the beans/objects which are part of
+Spring boot application. So in our above example we created a class HelloWorld and annotated it with @Component. After that
+we autowired that @Component class reference in the Application class so that with that reference we can access the object of the
+HelloWorld created by IOC container so that we can call the display method.
+
+
+As we are implementing CommandLineRunner we have to override the method run of CommandLineRunner.
+
+---------------------------------------------------------------------------------------------------------------------------------
+Do we have any other option to create this Spring Boot project without taking the help of the site for Spring Initializer?
+Yes we can for that we have incorporate spring tool suite (STS) plugin with eclipse.
+
+How to do that?
+Click on Help menu====> Eclipse Marketplace
+------------------------------------------------------------------------------------------------------------------
+Core Java 
+  public class HelloWorld {
+     public void display(){
+      System.out.println("Hello World");
+     }
+   }
+
+  public class Application {
+     public static void main(String[] args){
+       HelloWorld hw=new HelloWorld();
+     }
+  }
+
+--------------------------------------------------------------------------------------------------------------
+Spring Core Java Based
+
+  public class HelloWorld {
+     public void display(){
+       System.out.println("Hello World");
+      }
+    }
+
+   @Configuration
+   public class SpringConfig{
+    @Bean
+     public HelloWorld(){
+      return new HelloWorld();
+     }
+
+   }
+
+  
+   public class Application {
+     public static void main(String args[]) {
+
+      ApplicationContext context=new AnnotationApplicationContext(SpringConfig.class);
+      HelloWorld hw=context.getBean(HelloWorld.class);
+      hw.display();
+     }
+  } 
+
+-----------------------------------------------------------------------
+
+Spring Core Java Annotation based
+
+  package com.infosys.model;
+  @Component
+  public class HelloWorld {
+     public void display(){
+       System.out.println("Hello World");
+      }
+    }
+
+   @Configuration
+   @ComponentScan(basePackages="com.infosys.model")
+   public class SpringConfig{
+
+
+   }
+
+  
+   public class Application {
+     public static void main(String args[]) {
+
+      ApplicationContext context=new AnnotationApplicationContext(SpringConfig.class);
+      HelloWorld hw=context.getBean(HelloWorld.class);
+      hw.display();
+     }
+  } 
+
+------------------------------------------------------------------------------------------------------------------
+ package com.infosys.model;
+  @Component
+  public class HelloWorld {
+     public void display(){
+       System.out.println("Hello World");
+      }
+    }
+
+  
+
+   @SpringBootApplication
+   public class Application implements CommandLineRunner {
+     @Autowired
+     private HelloWorld hw;
+     public static void main(String ... args) {  //vargs ( variable number of arguements
+       SpringApplication.run(Application.class,args);
+     
+     }
+
+    public void run(String ... args){
+       //  hw.display(); 
+         greet();
+      }
+
+    private void greet(){
+       hw.display();
+    }
+
+  } 
+
+I am writing any ComponentScan so how the container will know that where these classes which are annotated with @Component,@Repository,@Service and @Controller are present ?
+A it always look for the package where the Application class is and to the sub-packages of the package where Application class is.
+-------------------------------------------------------------------------------------------------------------------------------
+1) You will create a Spring Boot project with Spring Initializer ( Which is web based) or we will will go for installing the 
+   plugin for STS alongwith Eclipse IDE so that we can create Spring Starter Project.
+2) pom.xml is getting created with some default dependencies.
+3) The confguration related class we dont have to create.
+4) We need to go for creating an object IOC container.
+--------------------------------------------------------------------------------------------------------------------------------------
+How to read properties from propertied file?
+A We need to have Environment object.
+
+      Environment env=context.getEnvironment();
+
+But in Spring Boot we are not having any ApplicationContext object. So how we will get this Environment object.
+A We will autowire the Environment object.
+-------------------------------------------------------------------------------------------------------------------------------
+Level	Description
+ALL	All levels including custom levels.
+DEBUG	Designates fine-grained informational events that are most useful to debug an application.
+INFO	Designates informational messages that highlight the progress of the application at coarse-grained level.
+WARN	Designates potentially harmful situations.
+ERROR	Designates error events that might still allow the application to continue running.
+FATAL	Designates very severe error events that will presumably lead the application to abort.
+OFF	The highest possible rank and is intended to turn off logging.
+TRACE	Designates finer-grained informational events than the DEBUG.
+
+How do Levels Works?
+A log request of level p in a logger with level q is enabled if p >= q. This rule is at the heart of log4j. It assumes that levels are ordered. For the standard levels, we have ALL < DEBUG < INFO < WARN < ERROR < FATAL < OFF.
+---------------------------------------------------------------------------------------------------------------------------
+I understood the setting of Level and understood that if the level is set to INFO then I can login for info,error,fatal etc.
+
+How to set this LEVEL or WHERE to set this LEVEL?
+Currently we will do it in the application.properties file. 
+
+# Logging Level
+logging.level.com.infy.service=ERROR
+logging.level.com.infy=INFO
+
+# Logging pattern for the console
+logging.pattern.console=%d{yyyy-MMM-dd HH:mm:ss a} [%t] %-5level %logger{36} - %msg%n
+
+# Logging pattern for file
+logging.pattern.file=%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n
+
+# Logging File
+logging.file.name=logs/Error.log
+#logging.file.path=logs/Error.log
+
+
+-----------------------------------------------------------------------------------------------------------
+https://logging.apache.org/log4j/1.2/manual.html
+------------------------------------------------------------------------------------------------------------------
+
+	
+I want to log the error and other non error messages to a log file by using log4j API(classes).
+For that update the pom.xml
+
+               <dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-starter-logging</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-log4j2</artifactId>
+		</dependency>
+---------------------------------------------------------------------------------------------------------------------------------
+Just create or copy log4j2.properties file. 
+
+#Name of the Properties file
+name=LoggerConfigFile
+
+#Declaring logger for business logic
+logger.file.name=com.infy.service
+logger.file.level=DEBUG
+logger.file.appenderRef.file.ref=LoggerAppender
+logger.file.additivity=false
+
+#Declaring logger for business console
+logger.console.name=com.infy
+logger.console.level=INFO
+logger.console.appenderRef.file.ref=ConsoleAppender
+logger.console.additivity=false
+
+# File Appender
+appender.file.name=LoggerAppender
+appender.file.type=File
+appender.file.fileName=log/ErrorLog.log
+#Logging Pattern
+appender.file.layout.type=PatternLayout
+appender.file.layout.pattern=%d{dd-MMM-yyyy HH:mm:ss} %level - %m%n
+
+
+# Console Appender
+appender.console.name=ConsoleAppender
+appender.console.type=Console
+#Logging Pattern for console
+appender.console.layout.type=PatternLayout
+appender.console.layout.pattern=%d{dd-MMM-yyyy HH:mm:ss} %level - %m%n
+----------------------------------------------------------------------------------------------------------------------------
+private final Log LOGGER = LogFactory.getLog(this.getClass());
+private  static final Log LOGGER = LogFactory.getLog(Application.class);
+------------------------------------------------------------------------------------------------------------------------------
+LOGGER.info();   ( To print valid details )
+LOGGER.error(); // Exception handler ( in catch block)
+
+Class getClass() is a method of Object class
+     
+
+  public class Demo {
+
+     public void display(){
+          Class class1=this.getClass();    // Demo.class
+           System.out.println(class1.getName()); // Demo.class
+     }
+  }
+
+
+   public class Main {
+          public static void main(String args[]){
+              Demo demo=new Demo();
+              demo.display();
+         }
+   }
+
+
+-----------------------------------------------------------------------------------------------------------------------------------
+While writing a business we have seen multiple layers like Controller,Service,Repository.
+There are some functionality like logging,transaction,security which has to be applied to all
+the layers namely Controller,Service,Repository. So they go horizontally cutting all the layers
+and known as cross cutting concerning. 
+
+Till now we have seen how logger is applied in the Application and Service layer.
+So we can see that in multiple classes we are writing similar code so we can see
+redundancy of same logger related code in multiple layers.
+
+With AOP we can plan in such a way that this cross cutting concern is managed from a single
+class. 
+
+So, it is better to keep all of cross cutting concerns’ code in one place and use it in multiple places wherever required. This is where Aspect Oriented Programming (AOP) kicks in. It provides a way to separate the code of cross-cutting concern(logging,transaction,security ) from business logic code and define them in one place so that it can be reused in all the layers of the application. 
+
+
+
+-------------------------------------------------------------------------------------------------------------------------------------
+So if we are doing AOP programming and keeping the cross cutting concern like logging in a single place how it is 
+achieved by writing the java classes.
+
+  @Aspect
+  @Component
+  public class Logging{
+    
+ @Before("execution(* com.infy.service.*Impl.*(..))")
+   public void before() throws InfyBankException {
+	LOGGER.info("Before advice called.");
+   }
+
+
+
+    execution(<modifiers> <return-type> <fully qualified class name>.<method-name>(parameters))
+    public void method2(){
+     // Log when the exception took place in any of the method
+    }
+
+  }
+
+
+
+  public classs ServiceImpl implements Service {
+
+ 
+    public String addCustomer(CustomerDTO customerDTO){
+  
+    }
+    public List<CustomerDTO> displayCustomers(){}
+
+  }
+
+// the class Logging is an aspect class with the advices like method1 and method2 and this advices
+// can be for the methods addCustomer and displayCustomer().
+
+How the advice will know, that which method it should intercept and Log?
+A This will be done by the Pointcut expression.
+
+
+Aspect is a class that implements the cross-cutting concerns. To declare a class as an aspect it should be annotated with the @Aspect annotation. It should be applied to the class which is annotated with @Component annotation or with derivatives of it.
+
+Join point is a specific point in the application such as method execution, exception handling, changing object variable values, etc during its execution. In Spring AOP a join point is always the execution of a method.
+
+Advice is a method of the aspect class that provides the implementation for the cross-cutting concern. It gets executed at the selected join point(s). The following table shows the different types of advice along with the execution point they have
+
+Before	The advice gets executed before the join-point.
+After Returning    	The advice gets executed after the execution of the join-point finishes.
+After Throwing	The advice gets executed if any exception is thrown from the join-point.
+After (Finally)	The advice gets executed after the execution of the join-point whether it throws an exception or not.
+Around	The advice gets executed around the join-point, which means that it is invoked before the join-point and after the execution of the join-point.
+
+Pointcut represents an expression used to identify join points. It evaluates to the method name before or after which the advice needs to be executed
+
+
+execution(public * *(..))    method return is public
+                            * any return type
+                            * any method
+                            .. any datatype and any number of parameters
+
+
+execution(* service*(..))    * any return type 
+                             service means any method starting with service
+                             * anything after service
+
+execution(* com.infy.service.*.*(..))   * any return type
+                                        com.infy.service
+                                        * Any classes
+                                        * for any methods
+
+
+execution is called as pointcut designator. It tells Spring that join point is the execution of the matching method.
+
+<modifiers> determines the access specifier of the matching method. It could either be public, protected, or private. It is not mandatory.
+
+<return-type> determines the return type of the method in order for a join point to be matched. It is mandatory. If the return type doesn't matter wildcard * is used.
+
+<fully qualified class name> specifies the fully qualified name of the class which has methods on the execution of which advice gets executed. It is optional. You can also use * wildcard as name or part of a name.
+
+<method-name> specifies the name of the method on the execution of which advice gets executed. It is mandatory. You can also use * wildcard as name or part of a name.
+
+parameters are used for matching parameters. To skip parameter filtering, use two dots .. as parameters.
+
+For AOP the following dependency:-
+
+
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-aop</artifactId>
+</dependency>
+
+
+
+@Component
+@Aspect
+public class LoggingAspect {
+
+	public static final Log LOGGER = LogFactory.getLog(LoggingAspect.class); 
+
+	
+
+	@AfterThrowing(pointcut = "execution(* com.infosys.service.*Impl.*(..))", throwing = "exception")
+	public void afterThrowing(CustomerException exception) throws CustomerException {
+		LOGGER.error(exception.getMessage(), exception);
+	}
+
+
+-----------------------------------------------------------------------------------------------------------------------
+pom.xml
+
+<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+---------------------------------------------------------------------------------------------------
+Spring ORM and Spring Data.
+----------------------------------------------------------------------------------------------------------------------------
+he JDBC code involves both Java objects (object model) and SQL queries (relational model).
+
+public class Address{
+private int hno;
+private String streetName;
+}
+public class Employee{
+  private int id;
+  private String name;
+  Address address;
+}
+
+  Employee emp=new Employee();
+  emp.address
+
+
+To handle these problems, a technique called as Object-Relational Mapping (ORM) was introduced. It handles object relational impedance mismatch by providing a way to map Java objects to tables so that object model can be automatically translated to relation model and vice versa, allowing developers to focus only on the object model.
+
+  Object Oriented Approach--------------------ORM-----------------Relational Approach
+                                  (Object Relational Mapping)
+
+
+It resolves object-relational impedance mismatch by mapping
+
+Java classes to tables in the database
+Instance variables to columns of a table
+Objects to rows in the table
+
+
+
+To use ORM in Java applications, Java Persistence API (JPA) specification is used. It has many implementations such as Hibernate, OpenJPA, TopLink, EclipseLink, etc. In this course we will use Hibernate implementation.
+
+
+public interface JPA{}   // Interface gives us specification not the implementation
+
+public class OpenJPA implements JPA{}
+public class TopLink implements JPA{}
+public class Hibernate implements JPA{}
+------------------------------------------------------------------------------------------------------------------------------
+How I can make the implementation of ORM independent of the JavaCode?
+public class JavaCode {
+JPA jpa=new OpenJPA();
+
+
+}
+
+Hibernate,OpenJPA,TopLink are ORM tools/frameworks. These frameworks help us to reduce the 5 mismatches between Object Oriented
+Approach and Relational approach.
+---------------------------------------------------------------------------------------------------------------------------
+ In this course, we will use Hibernate implementation of JPA. Now, let us see how to use JPA for mapping classes with tables.
+-----------------------------------------------------------------------------------------------------------------
+@Entity
+@Table(name="customer")
+public class Customer {
+    @Id
+    @Column(name="customer_id")
+    private Integer customerId;
+    @Transient  // For transient type we dont have corresponding column/data in the table
+    private Integer creditCardNumber;
+}
+-----------------------------------------------------
+
+public class Employee{
+  private int id;
+  private String name;
+
+  public Employee(int id,String name){
+    this.id=id;
+    this.name=name;
+  }
+}
+
+ public class Main{
+    public static void main(String args[]) {
+     Employee emp1=new Employee(1,"Ram");
+     Employee emp2=new Employee(1,"Ram");
+     System.out.println(emp1==emp2);    //false
+     System.out.println(emp1.equals(emp2));  //false
+     System.out.println(emp1.hashCode()); 
+     System.out.println(emp2.hashCode());
+     }
+  }
+
+  // So in the above example equals method is inherited from the object class and equals method of the object class compares
+ // the address that means it works exactly same as ==
+// In the above case hashcode value will be different as the objects are different and hashcode is related with addresses of the
+   objects so as addresses are different so hashcodes are different.
+
+
+As per the java specification if the objects are having the same data , equals should return true and hashCode will be 
+exactly same. But currently in the above code it is not happening. 
+
+So solution is override both equals and hashCode();
+-----------------------------------------------------------------------------------------------------------
+Avoid database tables associated to more than one entity, i.e., one single table in the database should be associated with only one entity
+
+New/Transient State : A newly created entity object which has no persistence context associated with it and having no row associated with it in a table in database is said to be in new or transient state.
+
+Managed/Persistent State : An entity object which has a persistence context and an identifier value associated with it is said to be in managed or persistent state. It may or may not have a row associated with it in a table.
+
+Removed State : An entity object which has a row associated with it in a table and associated with a persistence context, but marked for deletion from the database is said to be in removed state.
+
+Detached State : An entity object which is no longer associated with a persistence context with which it was previously associated with it is said to be in detached state. This usually happens when session gets closed or the object was evicted from the persistence context.
+
+-------------------------------------------------------------------------------------------------------------------------
+
+JPA ORM EntityManager is responsible for managing the objects. 
+----------------------------------------------------------------------------------------------------------------------------
+Imports Required
+----------------------------------------------------------------------------------------------------------------------------
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.core.env.Environment;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.Id;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.aspectj.lang.annotation.AfterThrowing;
+import org.aspectj.lang.annotation.Aspect;
+import org.springframework.stereotype.Component;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+--------------------------------------------------------------------------------------------------------------------------------
+@SpringBootApplication
+@Autowired
+@Entity
+@Id
+@Enumerated(value=EnumType.STRING)
+@Repository
+@Service
+@Transactional
+@AfterThrowing(pointcut = "execution(* com.infy.service.*Impl.*(..))", throwing = "exception")
+-----------------------------------------------------------------------------------------------------------------
+public static final Log LOGGER = LogFactory.getLog(LoggingAspect.class);
+-------------------------------------------------------------------------------------------------------
+UserInterface.UPDATE_SUCCESS=Customer details successfully updated.
+Service.CUSTOMER_ALREADY_EXISTS=Customer already present. Add customer with different details.
+UserInterface.INSERT_SUCCESS=Customer details added successfully.
+
+Service.CUSTOMER_UNAVAILABLE=Customer details not found. Give valid customer id.
+# MySQL settings
+#Change these settings according to database you are using
+spring.datasource.url=jdbc:mysql://localhost:3306/customer_db
+spring.datasource.username=root
+
+#If MySQL installation is password proctored,then use below property to set password
+spring.datasource.password=password@123
+
+#JPA settings
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.format_sql=true
+----------------------------------------------------------------------------------------------------------------------
+#Name of the Properties file
+name=LoggerConfigFile
+
+#Declaring logger for business logic
+logger.file.name=com.infy.utility
+logger.file.level=DEBUG
+logger.file.appenderRef.file.ref=LoggerAppender
+logger.file.additivity=false
+
+#Declaring logger for business console
+logger.console.name=com.infy
+logger.console.level=INFO
+logger.console.appenderRef.file.ref=ConsoleAppender
+logger.console.additivity=false
+
+# File Appender
+appender.file.name=LoggerAppender
+appender.file.type=File
+appender.file.fileName=log/ErrorLog.log
+#Logging Pattern
+appender.file.layout.type=PatternLayout
+appender.file.layout.pattern=%d{dd-MMM-yyyy HH:mm:ss} %level - %m%n
+
+
+# Console Appender
+appender.console.name=ConsoleAppender
+appender.console.type=Console
+#Logging Pattern for console
+appender.console.layout.type=PatternLayout
+appender.console.layout.pattern=%m%n
+
+-------------------------------------------------------------------------------------------------------------------------------
+<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-starter-logging</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>org.junit.vintage</groupId>
+					<artifactId>junit-vintage-engine</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-log4j2</artifactId>
+		</dependency>
+	</dependencies>
+-----------------------------------------------------------------------------------------------------------------------------------
+1. For us the ORM being used is Hibernate.
+2. We add the starter dependencies as mysql-connector-java and  spring-starter-data-jpa. 
+3. We need to update application.properties for database connectivity.
+   The application.properties is within resource folder.
+-----------------------------------------------------------------------------------------------------------------------------------
+data.sql
+
+drop database if exists school_db;
+create database school_db;
+use school_db;
+create table student(
+   roll int primary key,
+   name varchar(20),
+   marks int
+);
+insert into student values(1,'Rohit',90);
+commit;
+select * from student;
+---------------------------------------------------------------------------------------------------------------------------------
+We create the packages:-
+ com.school.service;
+ com.school.repository;
+ com.school.dto;
+ com.school.entity;
+  
+ Right click on com.school and start creating the packages.
+FORMATTING THE CODE WHICH WE ARE WRITING IN THE EDITOR ctrl+shift+f.
+
+  
+  @Transactional
+  public class StudentServiceImpl implements StudentService {
+  
+    @Autowired
+   private StudentRepository studentRepository;  
+     // Either both the methods namely update and delete should happen but if one
+     // fails , rollback should happen
+    public void update(){
+        studentRepository.update();
+        studentRepository.delete();
+     }
+
+  }
+// In the above calse update and delete are getting executed under a single transaction
+// maybe that we want. 
+    
+  public class StudentRepositoryImpl implements StudentRepository{
+
+     // update will be taking place in one transaction
+     // delete will be in another new transaction
+    public void update(){}
+    public void delete(){}
+  }
+}
+
+
+
+
+
+
+
+  public class StudentServiceImpl implements StudentService {
+  
+    @Autowired
+   private StudentRepository studentRepository;  
+     // Either both the methods namely update and delete should happen but if one
+     // fails , rollback should happen
+    public void update(){
+        studentRepository.update();
+        studentRepository.delete();
+     }
+
+  }
+
+    
+  @Transactional
+  public class StudentRepositoryImpl implements StudentRepository{
+
+     // update will be taking place in one transaction
+     // delete will be in another new transaction
+    public void update(){}
+    public void delete(){}
+  }
+}
+
+@PersistenceContext should be preferred over @Autowired for injecting EntityManager
+
+Why should @PersistenceContext should be used?
+
+When multiple clients call the application, each call creates a unique thread.
+
+Persistence Context is specifically designed so as to create unique EntityManager for every thread whereas Autowired creates the same Entity Manager for all the threads. This can become a design flaw as multiple clients may access the same entity.
+
+Thus, as a best practice, always use @PersistenceContext for injecting the EntityManager.
+
+
+
+Java Persistence Query Language (JPQL). These queries are defined using entity classes and its attributes instead of tables and columns. This makes it easy for Java developers to use it. But since database uses SQL, JPA implementations translate the JPQL query into SQL using query translator.
+
+
+Query interface
+
+To create and execute JPQL queries, JPA provides Query interface. An object of Query interface is created through EntityManager interface using createQuery method as follows:
+
+Query query = entityManager.createQuery("SELECT c FROM Customer c");
+where SELECT c from CustomerEntity c is a JPQL query.
+
+This interface provides following methods to execute a query:
+
+List getResultList() : This method executes select queries and returns a List of results. It throws IllegalStateException if called for update and delete queries.
+
+Integer executeUpdate() : This method executes update and delete queries. It returns the number of rows updated or deleted. It throws IllegalStateException if called for select queries.
+
+Object getSingleResult() : This method executes select query which returns a single result. If no result available it throws NoResultException. It throws NonUniqueResultException if query returns more than one results and IllegalStateException if called for update and delete queries.
+
+
+Query query = entityManager.createQuery("SELECT c FROM Customer c");
+              query.getResultList();
+  // In place of select if we write update or delete , it will throw IllegalStateException
+
+Query query = entityManager.createQuery("SELECT c FROM Customer c");
+              query.getSingleResult();  // The exception NonUniqueResultException will be thrown as multiple records are returned from               the table.
+
+-------------------------------------------------------------------------------------------------------------------
+
+ Query query=entityManager.createQuery("select s from Student s where s.roll=?1 and s.name=?2");
+   int roll=100;
+   String name="Sunil";
+   query.setParameter(1,roll);
+   query.setParameter(2,name);
+   List<Student> studentList=query.getResultList();
+------------------------------------------------------------------------------------------------------------------
+
+
+ Query query=entityManager.createQuery("select s from Student s where s.roll=:rol and s.name=:nam");
+   int roll=100;
+   String name="Sunil";
+   query.setParameter("rol",roll);
+   query.setParameter("nam",name);
+   List<Student> studentList=query.getResultList();
+ ---------------------------------------------------------------------------------------------------------------------  
+
+  weekend_demo_codes_1_10_2022_to_2_10_2022 
+
+
+
+
+
+
