@@ -1,0 +1,400 @@
+
+drop database if exists studentdb;
+create database studentdb ;
+use studentdb;
+create table student(
+roll integer auto_increment primary key,
+name varchar(20),
+marks integer);
+
+--------------------------------------------------------------------------------------------------------------------
+
+#MySQL settings
+#Change these settings according to database you are using
+spring.datasource.url=jdbc:mysql://localhost:3306/studentdb
+spring.datasource.username=root
+
+#If MySQL installation is password proctored,then use below property to set password
+spring.datasource.password=password@123
+
+#JPA settings
+#spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.format_sql=true
+
+------------------------------------------------------------------------------------------------------------------------
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>2.7.0</version>
+		<relativePath/> <!-- lookup parent from repository -->
+	</parent>
+	<groupId>com.example</groupId>
+	<artifactId>demo1</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>demo1</name>
+	<description>Demo project for Spring Boot</description>
+	<properties>
+		<java.version>11</java.version>
+	</properties>
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-devtools</artifactId>
+			<scope>runtime</scope>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>
+
+
+
+
+--------------------------------------------------------------------------------------------------------------------------------
+
+
+package com.example.demo1;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class Demo1Application {
+
+	public static void main(String[] args) {
+		SpringApplication.run(Demo1Application.class, args);
+	}
+
+}
+
+-------------------------------------------------------------------------------------------------------------
+package com.example.demo1.entity;
+
+import java.util.Objects;
+
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+
+@Entity
+public class Student {
+	@Id
+	@GeneratedValue(strategy=GenerationType.IDENTITY)
+	private int roll;
+	private String name;
+	private int marks;
+	public int getRoll() {
+		return roll;
+	}
+	public void setRoll(int roll) {
+		this.roll = roll;
+	}
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
+	}
+	public int getMarks() {
+		return marks;
+	}
+	public void setMarks(int marks) {
+		this.marks = marks;
+	}
+	@Override
+	public int hashCode() {
+		return Objects.hash(marks, name, roll);
+	}
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Student other = (Student) obj;
+		return marks == other.marks && Objects.equals(name, other.name) && roll == other.roll;
+	}
+	@Override
+	public String toString() {
+		return "Student [roll=" + roll + ", name=" + name + ", marks=" + marks + "]";
+	}
+--------------------------------------------------------------------------------------------------------
+package com.example.demo1.dto;
+
+import java.util.Objects;
+
+public class StudentDTO {
+	private int roll;
+	private String name;
+	private int marks;
+	
+	
+	
+	public StudentDTO() {
+		super();
+		// TODO Auto-generated constructor stub
+	}
+	public StudentDTO(int roll, String name, int marks) {
+		super();
+		this.roll = roll;
+		this.name = name;
+		this.marks = marks;
+	}
+	public int getRoll() {
+		return roll;
+	}
+	public void setRoll(int roll) {
+		this.roll = roll;
+	}
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
+	}
+	public int getMarks() {
+		return marks;
+	}
+	public void setMarks(int marks) {
+		this.marks = marks;
+	}
+	@Override
+	public int hashCode() {
+		return Objects.hash(marks, name, roll);
+	}
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		StudentDTO other = (StudentDTO) obj;
+		return marks == other.marks && Objects.equals(name, other.name) && roll == other.roll;
+	}
+	@Override
+	public String toString() {
+		return "StudentDTO [roll=" + roll + ", name=" + name + ", marks=" + marks + "]";
+	}
+	
+}
+---------------------------------------------------------------------------------------------------------
+package com.example.demo1.exceptions;
+
+public class StudentException extends Exception {
+public StudentException(String message)
+{
+	super(message);
+}
+}
+
+
+----------------------------------------------------------------------------------------------------------------------------------
+
+package com.example.demo1.repository;
+
+import org.springframework.data.repository.CrudRepository;
+
+import com.example.demo1.entity.Student;
+
+@Repository
+public interface StudentRepository extends CrudRepository<Student, Integer> {
+
+}
+----------------------------------------------------------------------------------------------------
+package com.example.demo1.service;
+
+import com.example.demo1.dto.StudentDTO;
+import com.example.demo1.exceptions.StudentException;
+
+public interface StudentService {
+ void addStudent(StudentDTO studentDTO) throws StudentException;
+ StudentDTO getStudent(Integer roll) throws StudentException;    
+ void updateStudent(Integer roll, Integer marks) throws StudentException;    	   
+ void deleteStudent(Integer roll) throws StudentException; 
+}
+
+--------------------------------------------------------------------------------------------------------
+package com.example.demo1.service;
+
+import java.util.Optional;
+
+import javax.transaction.Transactional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.example.demo1.dto.StudentDTO;
+import com.example.demo1.entity.Student;
+import com.example.demo1.exceptions.StudentException;
+import com.example.demo1.repository.StudentRepository;
+
+
+@Service
+@Transactional
+public class StudentServiceImpl implements StudentService {
+
+	@Autowired
+	private StudentRepository studentRepository;
+	
+	@Override
+	public void addStudent(StudentDTO studentDTO) throws StudentException {
+	   Student student=new Student();
+	   student.setRoll(studentDTO.getRoll());
+	   student.setName(studentDTO.getName());
+	   student.setMarks(studentDTO.getMarks());
+	   studentRepository.save(student);
+
+	}
+
+	@Override
+	public StudentDTO getStudent(Integer roll) throws StudentException {
+	//Student student=studentRepository.findById(roll).get();
+	Optional<Student> student=studentRepository.findById(roll);
+	Student st=student.orElseThrow(()->new StudentException("Not found"));
+	StudentDTO studentDTO=new StudentDTO();
+	studentDTO.setRoll(st.getRoll());
+	studentDTO.setName(st.getName());
+	studentDTO.setMarks(st.getMarks());
+	return studentDTO;
+	}
+      
+       @Override
+	public void updateStudent(Integer roll, Integer marks) throws StudentException {
+		Optional<Student> optional = studentRepository.findById(roll);
+		Student student = optional.orElseThrow(() -> new StudentException("Student not found"));
+		student.setMarks(marks);
+	}
+
+      @Override
+	public void deleteStudent(Integer roll) throws StudentException {
+		Optional<Student> optional = studentRepository.findById(roll);
+		optional.orElseThrow(() -> new StudentException("Student not found"));
+		studentRepository.deleteById(roll);
+	}
+
+
+}
+-----------------------------------------------------------------------------------------
+package com.example.demo1.controller;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.example.demo1.dto.StudentDTO;
+import com.example.demo1.exceptions.StudentException;
+import com.example.demo1.service.StudentService;
+
+@RestController
+@RequestMapping("/students")
+
+public class StudentAPI {
+
+	    @Autowired
+	    private StudentService studentService;  
+	
+// http://localhost:8080/students/addStudent	    
+	    @PostMapping("/addStudent")
+	    public ResponseEntity<String> addStudent(@RequestBody StudentDTO studentDTO)
+	    {
+	          try {
+				studentService.addStudent(studentDTO);
+				
+			} catch (StudentException e) {
+			
+				e.printStackTrace();
+			}
+	        return new ResponseEntity<>("SUCCESS",HttpStatus.OK);
+	    }
+	 // http://localhost:8080/students/getStudent/11	    
+	    @GetMapping("/getStudent/{roll}")
+	    public ResponseEntity<Object> getStudent(@PathVariable int roll)
+	    {
+	    	StudentDTO studentDTO=null;
+	    	try {
+				studentDTO=studentService.getStudent(roll);
+			} catch (StudentException e) {
+			return new ResponseEntity<>(e.getMessage(),HttpStatus.NOT_FOUND);
+			}
+	       return new ResponseEntity<>(studentDTO,HttpStatus.OK);
+	    }
+
+         // http://localhost:8080/students/updateStudent/11	   
+	 @PutMapping(value = "/updatestudent/{roll}")
+         public ResponseEntity<String> updateStudent(@PathVariable Integer roll, @RequestBody StudentDTO student)
+	
+				throws StudentException {
+			studentService.updateStudent(roll, student.getMarks());
+			String successMessage = "Updated";
+			return new ResponseEntity<>(successMessage, HttpStatus.OK);
+		}
+
+          // http://localhost:8080/students/deletestudent/11	
+      	 @DeleteMapping(value = "/deletestudent/{roll}")
+         public ResponseEntity<String> deleteStudent(@PathVariable Integer roll)
+	
+				throws StudentException {
+			studentService.deleteStudent(roll);
+			String successMessage = "Deleted";
+			return new ResponseEntity<>(successMessage, HttpStatus.OK);
+		}
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+}

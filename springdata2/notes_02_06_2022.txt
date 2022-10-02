@@ -1,0 +1,554 @@
+*Spring Data provides repositories which are interfaces associated with entity and provide different methods for performing database operations. 
+*Spring automatically generates the implementation class of these interfaces and provides default implementation of the methods. 
+*To use these repositories, you have to define your own repository for an entity class by extending Spring Data repositories. For example, to perform database operations on Customer entity class, you can create a CustomerRepository as follows:
+
+public CustomerRepository extends CrudRepository<Customer, Integer>{
+}
+
+*In the above code, CrudRepository interface is provided by Spring Data which accepts the entity class and data type of the identifier attribute of the entity class as generic parameters. This CrudRepository class provides methods to perform different database operations using entity class. Spring Data automatically generates the implementation class at runtime and provides default implementation of methods of CrudRepository interface for CustomerEntity class. 
+
+public class CustomerServiceImpl implements CustomerService{
+  @Autowired
+  CustomerRepository customerRepository;
+ 
+  // add customer details
+  public void addCustomer(Customer customer){
+      customerRepository.save(customer);
+  }
+  // rest of the methods
+}
+
+In the above code, the implementation of save() method is automatically generated to save Customer entity objects. 
+
+Spring Data is a high-level project from Spring whose objective is to unify and ease the access to different types of data access technologies including both SQL and NoSQL databases. It simplifies the data access layer by removing the repository (DAO) implementations entirely from your application. Now, the only artifact that needs to be explicitly defined is the interface. 
+
+Spring Data contains a core project and many sub-projects as shown below.
+
+*Core Project provides concepts applicable to all Spring Data projects. It contains Spring Data Commons. It contains interfaces which are technology independent and supports commonly used database operations.
+
+*Sub Projects provide support for most of the data access technologies. 
+--------------------------------------------------------------------------------------------------
+public interface CustomerService {
+	public void addCustomer(CustomerDTO customer) throws InfyBankException;
+	public CustomerDTO getCustomer(Integer customerId) throws InfyBankException;
+	public List<CustomerDTO> findAll() throws InfyBankException;
+	public void updateCustomer(Integer customerId, String emailId) throws InfyBankException;
+	public void deleteCustomer(Integer customerId)throws InfyBankException;
+}
+
+@Service(value = "customerService")
+@Transactional
+public class CustomerServiceImpl implements CustomerService {
+	@Autowired
+	private CustomerRespository customerRespository;
+	@Override
+	public void addCustomer(CustomerDTO customerDto) throws InfyBankException {
+		Optional<Customer> optional = customerRespository.findById(customerDto.getCustomerId());
+		if (optional.isPresent())
+			throw new InfyBankException("Service.CUSTOMER_FOUND");
+		Customer customer = new Customer();
+		customer.setDateOfBirth(customerDto.getDateOfBirth());
+		customer.setEmailId(customerDto.getEmailId());
+		customer.setName(customerDto.getName());
+		customer.setCustomerId(customerDto.getCustomerId());
+		customerRespository.save(customer);
+	}
+	@Override
+	public CustomerDTO getCustomer(Integer customerId) throws InfyBankException {
+		Optional<Customer> optional = customerRespository.findById(customerId);
+		Customer customer = optional.orElseThrow(() -> new InfyBankException("Service.CUSTOMER_NOT_FOUND"));
+		CustomerDTO customerDto = new CustomerDTO();
+		customerDto.setCustomerId(customer.getCustomerId());
+		customerDto.setDateOfBirth(customer.getDateOfBirth());
+		customerDto.setEmailId(customer.getEmailId());
+		customerDto.setName(customer.getName());
+		return customerDto;
+	}
+	@Override
+	public List<CustomerDTO> findAll() throws InfyBankException {
+		Iterable<Customer> customers = customerRespository.findAll();
+		List<CustomerDTO> customerDTOs = new ArrayList<>();
+		customers.forEach(customer -> {
+			CustomerDTO customerDto = new CustomerDTO();
+			customerDto.setCustomerId(customer.getCustomerId());
+			customerDto.setDateOfBirth(customer.getDateOfBirth());
+			customerDto.setEmailId(customer.getEmailId());
+			customerDto.setName(customer.getName());
+			customerDTOs.add(customerDto);
+		});
+		if (customerDTOs.isEmpty())
+			throw new InfyBankException("Service.CUSTOMERS_NOT_FOUND");
+		return customerDTOs;
+	}
+	@Override
+	public void updateCustomer(Integer customerId, String emailId) throws InfyBankException {
+		Optional<Customer> optional = customerRespository.findById(customerId);
+		Customer customer = optional.orElseThrow(() -> new InfyBankException("Service.CUSTOMER_NOT_FOUND"));
+		customer.setEmailId(emailId);
+	}
+	@Override
+	public void deleteCustomer(Integer customerId) throws InfyBankException {
+		Optional<Customer> optional = customerRespository.findById(customerId);
+		optional.orElseThrow(() -> new InfyBankException("Service.CUSTOMER_NOT_FOUND"));
+		customerRespository.deleteById(customerId);
+	}
+}
+
+
+
+@SpringBootApplication
+public class DemoSpringDataCrudApplication implements CommandLineRunner {
+	public static final Log LOGGER = LogFactory.getLog(DemoSpringDataCrudApplication.class);
+	
+	@Autowired
+	CustomerServiceImpl customerService;
+	@Autowired
+	Environment environment;
+	public static void main(String[] args) {
+		SpringApplication.run(DemoSpringDataCrudApplication.class, args);
+	}
+	public void run(String... args) throws Exception {
+		//addCustomer();
+		//getCustomer();
+		//findAllCustomers();
+		//updateCustomer();
+		deleteCustomer();
+	}
+	public void addCustomer() {
+		CustomerDTO customer = new CustomerDTO();
+		customer.setCustomerId(4);
+		customer.setEmailId("harry@infy.com");
+		customer.setName("Harry");
+		customer.setDateOfBirth(LocalDate.now());
+		try {
+			customerService.addCustomer(customer);
+			LOGGER.info(environment.getProperty("UserInterface.INSERT_SUCCESS"));
+		} catch (Exception e) {
+			if (e.getMessage() != null)
+				LOGGER.info(environment.getProperty(e.getMessage(),
+						"Something went wrong. Please check log file for more details."));
+		}
+	}
+	public void getCustomer() {
+		try {
+			CustomerDTO customerDTO = customerService.getCustomer(1);
+			LOGGER.info(customerDTO);
+		} catch (Exception e) {
+			if (e.getMessage() != null)
+				LOGGER.info(environment.getProperty(e.getMessage(),
+						"Something went wrong. Please check log file for more details."));
+		}
+	}
+	public void findAllCustomers() {
+		try {
+			customerService.findAll().forEach(LOGGER::info);
+		} catch (Exception e) {
+			if (e.getMessage() != null)
+				LOGGER.info(environment.getProperty(e.getMessage(),
+						"Something went wrong. Please check log file for more details."));
+		}
+	}
+	public void updateCustomer() {
+		try {
+			customerService.updateCustomer(2, "tim01@infy.com");
+			LOGGER.info(environment.getProperty("UserInterface.UPDATE_SUCCESS"));
+		} catch (Exception e) {
+			if (e.getMessage() != null)
+				LOGGER.info(environment.getProperty(e.getMessage(),
+						"Something went wrong. Please check log file for more details."));
+		}
+	}
+	public void deleteCustomer() {
+		try {
+			customerService.deleteCustomer(3);
+			LOGGER.info(environment.getProperty("UserInterface.DELETE_SUCCESS"));
+		} catch (Exception e) {
+			if (e.getMessage() != null)
+				LOGGER.info(environment.getProperty(e.getMessage(),
+						"Something went wrong. Please check log file for more details."));
+		}
+	}
+}
+
+------------------------------------------------------------------------------------------------
+
+If you need to fetch the details of customer based on emailId, how do you implement?
+
+The methods provided by CrudRepository operate on primary key attribute whereas in this case, emailId is not the primary key.
+
+So, there can be situations and requirements similar to the one discussed here where you will not have methods present in Spring Data repositories.
+
+For implementing these type of requirements, Spring Data provides the following approaches:
+
+Query creation based on the method name
+
+Query creation using @Query annotation
+
+Query creation using @NamedQuery annotation
+
+
+
+Query creation based on the method name
+
+In this approach, we add methods in the interface which extends CrudRepository to implement custom requirements and Spring Data automatically generates the JPQL(Java Persistence Query Language) query based on the name of methods. These methods are called as query methods and are named according to some specific rules. 
+
+Some basic rules for naming these methods are as follows :
+
+The method name should start with "find...By", "get...By", "read...By", "count..By" or "query...By" followed by search criteria. The search criteria is specified using attribute name of entity class and some specified keywords. For example, to search customer based on emailId, the  following query method has to be added to repository interface :
+
+Customer findByEmailId(String emailId);
+
+
+When this method is called, it will be translated to the following JPQL query:
+
+select c from Customer c where c.emailId = ?1
+
+
+
+The number of parameters in query method must be equal to number of search conditions and they must be specified in the same order as mentioned in search conditions.
+
+2. To fetch data based on more than one condition, you can concatenate entity attribute names using And and Or keywords to specify search criteria. For example, to search customers based on email address or name , the following method has to be added to repository interface :
+
+List<Customer> findByEmailIdOrName(String emailId, String name);
+
+When the above method is called, it will be translated to following JPQL query:
+
+select c from Customer c where c.emailId = ?1 or c.name=?2
+
+3. Some other keywords that can be used inside query method names are Between, Is, Equals, Not, IsNot, IsNull, IsNotNull, LessThan, LessThanEqual, GreaterThan, GreaterThanEqual, After, Before, Like, etc.
+
+4. To sort the results by a specified column, you can use OrderBy keyword. By default, results are arranged in ascending order. For example, the following method searches customers by name and also orders the result in ascending order of date of birth: 
+
+List<Customer> findByNameOrderByDateOfBirth(String name);
+For sorting the results in descending order you can use Desc keyword as follows:
+
+List<Customer> findByNameOrderByDateOfBirthDesc(String name);
+
+5. To limit the number of results returned by a method, add First or Top keyword before the first 'By' keyword. To fetch more than one result, add the numeric value to the First and the Top keywords. For example, the following methods returns the first 5 customers whose emailId is given as method parameter: 
+
+List<Customer> findFirst5ByEmailId(String emailId);
+List<Customer> findTop5ByByEmailId(String emailId);
+----------------------------------------------------------------------------------------------------------
+
+
+@Transactional
+  public class CustomerSeviceImpl implements CustomerService{
+
+      add(){
+        --------------------------------------------------------------> findTheRecord()
+        -------------------------------------------------------------->addrecord()
+      }
+     onlinePurchase(){
+       ------------------------------------------------------------------>updateInMyAccount()
+       ------------------------------------------------------------------>insertDataInVendorsAccount()
+      }
+}
+
+ public class CustomerSeviceImpl implements CustomerService{
+
+      add(){
+        --------------------------------------------------------------> findTheRecord()
+        -------------------------------------------------------------->addrecord()
+      }
+     onlinePurchase(){
+       ------------------------------------------------------------------>updateInMyAccount()
+       ------------------------------------------------------------------>insertDataInVendorsAccount()
+      }
+}
+
+@Transaction
+public class CustomerRepositoryImpl implements CustomerRepository{
+
+updateInMyAccount(){}
+insertDataInVendorsAccount(){
+}
+ 
+}
+------------------------------------------------------------------------------------------------- 
+Q Which interface we need to extend if we want to work with the concept of pagination and sorting?
+A 
+public interface TransactionRepository extends PagingAndSortingRepository<Transaction, Integer>{
+}
+---------------------------------------------------------------------------------------------------------
+ Q What next?
+
+A 
+
+Pageable firstPagewithFiveRecords = PageRequest.of(0,5);
+Page<Transaction> transactions = transactionRepository.findAll(firstPageWithFiveRecords);
+List<Transaction> entityList = transactions.getContent();
+-------------------------------------------------------------------------------------------------
+package com.infosys.demo;
+
+import java.time.LocalDate;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+import com.infosys.demo.dto.TransactionDTO;
+import com.infosys.demo.service.TransactionService;
+
+@SpringBootApplication
+public class Springboot6Application implements CommandLineRunner{
+	@Autowired
+	private TransactionService transactionService;   
+	public static void main(String[] args) {
+		SpringApplication.run(Springboot6Application.class, args);
+	}
+	@Override
+	public void run(String... args) throws Exception {
+		 displayTransactions();
+		 displayTransactionsAfterDate();
+
+		
+	}
+	 private void displayTransactionsAfterDate() {
+		  LocalDate transactionDate = LocalDate.of(2000, 1, 1);
+	        List<TransactionDTO> transactionDTOs=transactionService.transactionAfterADate(transactionDate,0,5);
+	        transactionDTOs.forEach(System.out::println);
+		
+	}
+	public void displayTransactions(){
+
+         List<TransactionDTO> transactionDTOs=transactionService.getData(0,5);
+          transactionDTOs.forEach(System.out::println);
+ }
+
+}
+
+-------------------------------------------------------------------------------------------------------   
+package com.infosys.demo.repository;
+
+import java.time.LocalDate;
+import java.util.List;
+
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.stereotype.Repository;
+
+import com.infosys.demo.entity.Transaction;
+@Repository
+public interface TransactionRepository extends PagingAndSortingRepository<Transaction, Integer>{
+	public List<Transaction> findByTransactionDateAfter(LocalDate transactionDate, Pageable pageable);
+
+}
+-----------------------------------------------------------------------------------------------------
+package com.infosys.demo.service;
+
+import java.time.LocalDate;
+import java.util.List;
+
+import com.infosys.demo.dto.TransactionDTO;
+
+public interface TransactionService {
+      List<TransactionDTO> getData(int pageNo, int pageSize);
+      List<TransactionDTO> transactionAfterADate(LocalDate transactionDate,int pageNo, int pageSize);
+     }
+
+------------------------------------------------------------------------------------------------------
+package com.infosys.demo.service;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+
+import com.infosys.demo.dto.TransactionDTO;
+import com.infosys.demo.entity.Transaction;
+import com.infosys.demo.repository.TransactionRepository;
+@Service
+public class TransactionServiceImpl implements TransactionService {
+   @Autowired
+   private TransactionRepository transactionRepository;
+
+    public  List<TransactionDTO> getData(int pageNo, int pageSize){
+       // We have to create a reference of Pageable which will represent a page
+       //  To get an object of Pageable we have to write PageRequest.of(pagenumber,number of records)
+       Pageable firstPagewithFiveRecords = PageRequest.of(pageNo,pageSize);
+        // With the repository object we called findAll method which will receive a parameter of Pageable type
+       //and will return a Page object
+       Page<Transaction> transactions = transactionRepository.findAll(firstPagewithFiveRecords);
+        // Further from page object we can get a list of objects
+       List<Transaction> entityList = transactions.getContent();
+       List<TransactionDTO> transactionDTOs=null;
+       transactionDTOs = entityList.stream()
+				.map(p -> new TransactionDTO(p.getTransactionId(), p.getTransactionDate(), p.getTransactionAmount()))
+				.collect(Collectors.toList());
+		
+
+   /* for(Transaction transaction : entityList){
+     TransactionDTO transactionDTO=new TransactionDTO();
+     transactionDTO.setTransactionId(transaction.getTransactionId());
+     transactionDTOs.add(transactionDTO); */
+     return transactionDTOs;
+  
+    } 
+    public List<TransactionDTO> transactionAfterADate(LocalDate transactionDate,int pageNo, int pageSize){
+    	//LocalDate transactionDate = LocalDate.of(1996, 1, 29);
+    	Pageable pageable = PageRequest.of(pageNo, pageSize);
+    	List<Transaction> entityList = transactionRepository.findByTransactionDateAfter(transactionDate,pageable);
+    	List<TransactionDTO> transactionDTOs=null;
+    	       transactionDTOs = entityList.stream()
+    					.map(p -> new TransactionDTO(p.getTransactionId(), p.getTransactionDate(), p.getTransactionAmount()))
+    					.collect(Collectors.toList());
+    	  return transactionDTOs;
+    	}
+ }
+-------------------------------------------------------------------------------------------------------
+package com.infosys.demo.entity;
+
+import java.time.LocalDate;
+
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+
+@Entity
+public class Transaction {
+	@Id
+	private Integer transactionId;
+	private LocalDate transactionDate;
+	private Float transactionAmount;
+
+	public Integer getTransactionId() {
+		return transactionId;
+	}
+
+	public void setTransactionId(Integer transactionId) {
+		this.transactionId = transactionId;
+	}
+
+	public LocalDate getTransactionDate() {
+		return transactionDate;
+	}
+
+	public void setTransactionDate(LocalDate transactionDate) {
+		this.transactionDate = transactionDate;
+	}
+
+	public Float getTransactionAmount() {
+		return transactionAmount;
+	}
+
+	public void setTransactionAmount(Float transactionAmount) {
+		this.transactionAmount = transactionAmount;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((this.getTransactionId() == null) ? 0 : this.getTransactionId().hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Transaction other = (Transaction) obj;
+		if (this.getTransactionId() == null) {
+			if (other.getTransactionId() != null)
+				return false;
+		} 
+		else if (!this.getTransactionId().equals(other.getTransactionId()))
+			return false;
+		return true;
+	}
+
+	@Override
+	public String toString() {
+		return "Transaction [transactionId=" + transactionId + ", transactionDate=" + transactionDate
+				+ ", transactionAmount=" + transactionAmount + "]";
+	}
+
+}
+-----------------------------------------------------------------------------------------------
+package com.infosys.demo.dto;
+
+import java.time.LocalDate;
+
+public class TransactionDTO {
+	private Integer transactionId;
+	private LocalDate transactionDate;
+	private Float transactionAmount;
+
+	public TransactionDTO(Integer transactionId, LocalDate transactionDate, Float transactionAmount) {
+		super();
+		this.transactionId = transactionId;
+		this.transactionDate = transactionDate;
+		this.transactionAmount = transactionAmount;
+	}
+
+	public Integer getTransactionId() {
+		return transactionId;
+	}
+
+	public void setTransactionId(Integer transactionId) {
+		this.transactionId = transactionId;
+	}
+
+	public LocalDate getTransactionDate() {
+		return transactionDate;
+	}
+
+	public void setTransactionDate(LocalDate transactionDate) {
+		this.transactionDate = transactionDate;
+	}
+
+	public Float getTransactionAmount() {
+		return transactionAmount;
+	}
+
+	public void setTransactionAmount(Float transactionAmount) {
+		this.transactionAmount = transactionAmount;
+	}
+
+	@Override
+	public String toString() {
+		return "Transaction [transactionId=" + transactionId + ", transactionDate=" + transactionDate
+				+ ", transactionAmount=" + transactionAmount + "]";
+	}
+}
+---------------------------------------------------------------------------------------------------------------All JPA-specific cascade operations are represented by the javax.persistence.CascadeType enum containing entries:
+
+ALL
+PERSIST
+MERGE
+REMOVE
+REFRESH
+DETACH
+
+https://www.baeldung.com/jpa-cascade-types
+--------------------------------------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------------------------
+
+
+   Address address=customer.getAddress();
+   addressDTO.setAddress(address.getAddressId());
+   addressDTO.setAddress(address.getHno());
+--------------------------------------------------------------------------------------------------
+Persistence with spring:-
+
+* Spring Data
+* JPQL
+* Generating primary key
+* Relationship
+* Pagination and Sorting
+* JPA and ORM
+
+----------------------------------------------------------------------------------------------------

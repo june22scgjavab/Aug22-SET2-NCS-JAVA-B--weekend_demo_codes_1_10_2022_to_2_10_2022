@@ -1,0 +1,416 @@
+https://www.tutorialspoint.com/log4j/log4j_logging_levels.htm
+------------------------------------------
+
+   Interface 
+     |
+     |
+   Controller
+     |
+     |
+     |
+   Service ( Our concern is towards this layer)
+     |
+     |
+   Repository ( Collection API )
+
+packages===>
+interface
+controller
+service
+repository
+exception
+dto
+validation
+--------------------------------------------------------------------------------------------------
+          StudentDTO           StudentDTO         StudentDTO     List<StudentDTO> list=new ArrayList<>();
+Interface===========>Controller==========>Service============>Repository
+                                      (Validator)
+------------------------------------------------------------------------------------------------------
+Validator
+We want to store a student details his roll,name and marks 
+ roll number can be between ====> 1 and 100
+ name should be alphabetic 
+ marks can be between ===> 0 and 100
+----------------------------------------------------------------------------------------
+package com.infosys.crud.interfc;
+
+import com.infosys.crud.controller.StudentController;
+import com.infosys.crud.exception.StudentException;
+import com.infosys.crud.model.StudentDTO;
+
+public class Application {
+public static void main(String args[])
+{
+	try
+	{
+	StudentDTO student=new StudentDTO();
+    StudentController studentController=new StudentController();
+    //student.setRoll(1000); student.setName("Rajiv"); student.setMarks(90);
+	/*
+	 * student.setRoll(1); student.setName("Rajiv"); student.setMarks(90);
+	 */
+   // student.setRoll(1); student.setName("Rajiv123"); student.setMarks(90);
+    student.setRoll(1); student.setName("Rajiv"); student.setMarks(900);
+    String status=studentController.addStudent(student);
+    System.out.println(status);
+	}catch(StudentException ex)
+	{
+		System.out.println(ex.getMessage());
+	}
+    
+   
+	/*
+	 * student.setRoll(1000); student.setName("Rajiv"); student.setMarks(90);
+	 * student.setRoll(1); student.setName("Rajiv123"); student.setMarks(90);
+	 * student.setRoll(1); student.setName("Rajiv"); student.setMarks(900);
+	 */
+    
+}
+}
+
+---------------------------------------------------------------------------------------------
+package com.infosys.crud.controller;
+
+import com.infosys.crud.exception.StudentException;
+import com.infosys.crud.model.StudentDTO;
+import com.infosys.crud.service.StudentService;
+import com.infosys.crud.service.StudentServiceImpl;
+
+public class StudentController {
+
+	  private StudentService studentService=new StudentServiceImpl();
+	
+	      public String addStudent(StudentDTO student) throws StudentException {
+	    	   String status=studentService.addStudent(student);
+	    	    return status;       
+	    	        
+	       }
+	       
+}
+
+------------------------------------------------------------------------------------------
+package com.infosys.crud.service;
+
+import com.infosys.crud.exception.StudentException;
+import com.infosys.crud.model.StudentDTO;
+
+public interface StudentService {
+
+	String addStudent(StudentDTO student) throws StudentException;
+
+}
+
+---------------------------------------------------------------------------------------------------
+
+package com.infosys.crud.service;
+
+import com.infosys.crud.exception.StudentException;
+import com.infosys.crud.model.StudentDTO;
+import com.infosys.crud.repository.StudentRepository;
+import com.infosys.crud.repository.StudentRepositoryImpl;
+import com.infosys.crud.validator.Validator;
+
+public class StudentServiceImpl implements StudentService {
+  // Validation and other bsns logic
+	StudentRepository studentRepo=new StudentRepositoryImpl();
+	public String addStudent(StudentDTO student) throws StudentException {
+	boolean isAdded;
+	String status="ERROR";
+	Validator.validate(student);
+	isAdded=studentRepo.addStudent(student);
+    if(isAdded) {
+    	status="SUCCESS";
+    }
+	
+    return status;
+	}
+	}
+
+-------------------------------------------------------------------------------------
+
+package com.infosys.crud.repository;
+
+import com.infosys.crud.model.StudentDTO;
+
+public interface StudentRepository {
+ 
+	  boolean addStudent(StudentDTO student);
+}
+
+----------------------------------------------------------------------------
+
+package com.infosys.crud.repository;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import com.infosys.crud.model.StudentDTO;
+
+public class StudentRepositoryImpl implements StudentRepository {
+
+	private List<StudentDTO> studentList=new ArrayList<>();
+	public boolean addStudent(StudentDTO student) {
+		
+		boolean isAdded=studentList.add(student);
+		return isAdded;
+	    	  
+	}
+
+}
+
+----------------------------------------------------------------------------------------------------------------package com.infosys.crud.validator;
+
+import com.infosys.crud.exception.StudentException;
+import com.infosys.crud.model.StudentDTO;
+
+public class Validator {
+
+	public static void validate(StudentDTO student) throws StudentException {
+		if(!(validateRoll(student.getRoll()) &&  validateName(student.getName()) && validateMarks(student.getMarks())             ))
+		{
+			throw new StudentException("Data is incorrect");
+		}
+		
+	}
+
+	private static boolean validateMarks(int marks) {
+		boolean isValidMarks=false;
+		isValidMarks=(marks>=1 && marks<=100)?true:false;
+		return isValidMarks;
+	}
+  // String name="";
+	private static boolean validateName(String name) {
+		boolean isValidName=false;
+		String pattern="[a-zA-Z]+";
+		isValidName=name.matches(pattern);
+		return isValidName;
+	}
+
+	private static boolean validateRoll(int roll) {
+		boolean isValidRoll=false;
+		isValidRoll=(roll>=1 && roll<=100)?true:false;
+		return isValidRoll;
+	}
+
+}
+
+
+package com.infosys.crud.exception;
+
+public class StudentException extends Exception {
+   
+	public StudentException(String message)
+	{
+		super(message);
+	}
+}
+
+
+If everything goes correct , we need to add the student details in a list.
+--------------------------------------------------------------------------------------------------------
+Q I am not able to decide the return type of a method?
+A Always try to have some return type for the methods as it will make testing the method easy.
+
+Q How can I create a Spring Boot project?
+A Simply you can take the help of Spring Boot Initializer.
+
+
+
+Q From where we need to bootstrap or start executing our Spring Boot application? 
+
+package com.infy;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+@SpringBootApplication
+public class DemoSpringBootApplication  {
+	
+	public static void main(String[] args) {
+		SpringApplication.run(DemoSpringBootApplication.class, args);
+	}
+}
+
+
+The @SpringBootApplication annotation indicates that it is a configuration class and also triggers auto-configuration and component scanning. It is a combination of the following annotations with their default attributes:
+
+@EnableAutoConfiguration – This annotation enables auto-configuration for Spring Boot application which automatically configures your application based on the dependencies that you have added.
+
+@ComponentScan – This enables Spring bean dependency injection feature by using @Autowired annotation. All application components which are annotated with @Component, @Service, @Repository or @Controller are automatically registered as Spring Beans. These beans can be injected by using @Autowired annotation.
+
+@Configuration – This enables Java based configurations for Spring boot application.
+ 
+------------------------------------------------------------------------------------------------------------
+  package com.infosys.educator.practice1;
+
+  public class Practice1Application implements CommandLineRunner {}
+  
+
+
+ package com.infosys.educator.practice1.controller;
+ package com.infosys.educator.practice1.service;
+ package com.infosys.educator.practice1.repository;
+ package com.infosys.educator.practice1.exception;
+ //package com.infosys.educator.practice1.dto;
+ package com.infosys.educator.practice1.validator;
+
+ Write a springboot application to check whether the entered string is available in a collection List.
+ If not raise an exception StringNotFoundException.
+ In validation we have to check the entered string for search has all the characters as alphabets.
+
+  package com.infosys.educator.practice1.repository;
+  public interface StringRepository{
+       boolean searchString(String str);
+     }
+
+  package com.infosys.educator.practice1.repository;
+
+  @Repository  
+  public class StringRepositoryImpl implements StringRepository {
+
+   List<String> stringList=new ArrayList<>();   
+   public StringRepositoryImpl(){
+     stringList.add("hello");
+     stringList.add("hi");
+     stringList.add("bye");
+
+   }
+
+    public boolean searchString(String str) {
+                        boolean b=stringList.contains(str);
+     }
+
+
+  }
+
+--------------------------------------------------------------------------------------------------
+
+
+ package com.infosys.educator.practice1.service;
+  public interface StringService{
+       boolean searchString(String str);
+     }
+
+  package com.infosys.educator.practice1.service;
+
+  @Service 
+  public class StringServiceImpl implements StringService {
+
+     @Autowired
+     private StringRepository stringRepository;
+
+    public boolean searchString(String str) {
+
+     }
+
+
+  }
+
+-------------------------------------------------------------------------------
+
+   package com.infosys.educator.practice1.controller;
+
+  @Controller
+  public class StringController {
+
+     @Autowired
+     private StringService stringService;
+
+    public boolean searchString(String str) {
+
+     }
+
+  }
+
+
+   package com.infosys.educator.practice1.validator;
+
+   public class Validator {
+   
+      public static boolean validate(String str){
+
+       } 
+
+    }
+------------------------------------------------------------------------------------------------------------
+
+package com.infosys.educator.practice1.exception; 
+
+   public class StringNotValidException extends Exception {
+
+
+   }
+----------------------------------------------------------------------------------------------------------
+
+/* package com.infosys.educator.practice1.dto;
+
+   public class StringDTO{
+    private String string;
+   // setters/getters;
+   } */
+ ---------------------------------------------------------------------------------------------------------
+ Various Logging level
+
+  ALL
+  DEBUG
+  INFO
+  WARN
+  ERROR
+  FATAL
+
+If we are setting the level as INFO, it will show the error associated INFO, WARN, ERROR and FATAL.
+If we are setting the level as DEBUG, it whiil shoe the error associated with DEBUG,INFO,WARN, ERROR and FATAL.
+
+ INFO
+-------------------------------------------------------------------------------------------------
+When we started with Spring Framework:-
+1) Basic CRUD application with different layers.
+2) Spring with Java as configuration  
+  
+   public class Hello {
+    public String greet(){
+    System.out.println("Hello");
+    }
+   }
+
+    @Configuration
+   public class Configuration {
+      public Hello hello(){
+        return new Hello();
+   }
+  }
+3) Spring with Java Annotation as configuration
+
+   @Component
+   public class Hello{
+
+   }
+
+
+  @Configuration
+  @ComponentScan(basePackages="com.infosys.demo.bean")
+   public class Configuration{
+
+   }
+
+4) SpringBoot 
+
+  @SpringBootApplication
+  public class MyApplication implement CommandLineRunner{
+    @Autowired
+    private StringController controller; 
+ 
+    @Autowired
+    private Environment env;
+    private static final log LOGGER=LogFactory.getLog(MyApplication.class);
+   public static void main(String args[]) {
+         SpringApplication.run(MyApplication.class,args);
+     }
+    public void run(String ... args){
+       boolean found=controller.search("Hi");
+       System.out.println(env.getProperty(message));
+        
+ }
+  }
+
+  application.properites
+  message="Hello friends";
+---------------------------------------------------------------------------------------------------------       

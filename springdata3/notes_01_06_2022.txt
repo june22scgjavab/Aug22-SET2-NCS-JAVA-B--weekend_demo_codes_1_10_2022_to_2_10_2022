@@ -1,0 +1,373 @@
+
+We started with Persistence layer where we are concerned about how to persist our data. Persisting data means
+storing the data in some files or in a database so that we can retrieve it later which means even after the code execution stops, data remains. 
+
+JPA====> Java Peristence API/Jakarta Persistence =====>
+JPA is a specification. We know in java specification is given through interface
+and then it is implemented by the class. Annotations are interface only. 
+
+Hibernate, OpenLink..... JPA implementation. (ORM tool )
+
+Out of this we are into Hibernate (ORM tool ). Object to Relation Mapping.
+
+Object Oriented approach and Relation approach do have differences in terminology
+and considering the data , comparing the data. So that gap is taken care of by ORM tool.
+
+
+  EntityManager to manage the object of entity class. Managing the object means using it under Persistence context so that the object can be mapped to records of a table.
+
+
+
+--------------------------------------------------------------------------------
+Basically, there are 4 states of an Object in JPA and these are New (Transient), Persistent (Managed), Detached (Unmanaged) and Removed (deleted).
+
+
+1. New (Transient) state
+An object that is newly created and has never been associated with JPA Persistence Context (hibernate session) is considered to be in the New (Transient) state. The data of objects in this state is not stored in the database.
+
+Example, student object is in New/Transient state.
+
+Student student = new Student("email@dot.com");
+
+
+2. Persistent (JPA managed) state
+An Object that is associated with persistence context (hibernate session) are in Persistent state. Any changes made to objects in this state are automatically propagated to databases without manually invoking persist/merge/remove.
+
+
+
+3. Detached (unmanaged) state
+An Object becomes detached when the currently running Persistence Context is closed. Any changes made to detached objects are no longer automatically propagated to the database.
+
+
+4. Removed object state
+As the name suggests, removed objects are deleted from the database. JPA provides entityManager.remove(object); method to remove an entity from the database.
+----------------------------------------------------------------------------------------------------
+find(Classname,id); ===> Reading the persistent object.
+persist(object):======> persist the object
+remove(objectname)=====> removing the object from the persistent condition.
+ 
+
+-----------------------------------------------------------------------------------------------------------
+* 4 stereotype annotation===>
+@Component
+@Repository  ( currently working on this )
+@Service  ( Done with this annotation)
+@Controller 
+
+
+   @Repository
+   public class CustomerRepositoryImpl  {
+    {
+      @PersistenceContext
+      private EntityManager em;
+
+      // CRUD
+      // creating/inserting a record
+     // while inserting we should ensure that the record is not available int the table
+     /* public CustomerDTO  createCustomer(Customer customer){
+       {
+              CustomerDTO customerDTO=findCustomer(customer.getCustomerId());
+             if(customerDTO==null)       
+              {
+              
+              em.persist(customer);
+              }
+           customerDTO;
+
+       } */
+
+       public int createCustomer(CustomerDTO customerDTO){
+            Customer cust=new Customer();
+            cust.setCustomerId(customerDTO.getCustomerId());
+            // set
+            em.persist(cust);
+            return customerDTO.getCustomerId();
+       }
+
+ 
+      public CustomerDTO findCustomer(int id){
+        Customer cust=em.find(Customer.class,id);
+        CustomerDTO customerDTO=null; 
+       if(cust!=null){
+           customerDTO=new CustomerDTO();
+           customerDTO.setCustomerId(cust.getCustomerId());
+           }
+         return customerDTO;
+       }
+
+      public int deleteCustomer(int id){
+         Customer cust=em.find(Customer.class.id);
+         if(cust!=null){
+          em.remove(cust);
+         }
+         int id=cust.getCustomerId();
+         return id;
+      }
+       
+      public int updateCustomer(int id, String address){
+       Customer cust=em.find(Customer.class,id);
+       cust.setAddress(address);   
+       int id=cust.getCustomerId();
+       return id;
+      }
+  }
+
+-----------------------------------------------------------------------------------------------------------
+Customer{}
+CustomerDTO {}
+
+@SpringBootApplication
+  public class Application implements CommandLineRunner{
+  @Autowired  
+  private CustomerRepository repo;
+         public static void main(String args[]){
+         SpringApplication.run(Application,args);
+ 
+  }
+   public void run(String ... args){
+      CustomerDTO customerDTO=new CustomerDTO();
+         customerDTO.setCustomerId(1);
+       CustomerDTO found=repo.findCustomer(customerDTO.getCustomerId());
+       if(found==null){
+          repo.createCustomer(customerDTO); 
+        }
+   }
+ }
+---------------------------------------------------------------------------------------------------
+  Object obj1="Ravi";
+  Object obj2=new Integer(20);
+  Object obj3=new Date();  
+
+
+
+   Object[]
+     |Ravi|2010-12-22|
+       0      1
+   ---------
+   Object[]
+     |Ashok|2009-10-16|
+       0      1
+   --------
+   Object[]
+   ------
+   Object[]
+
+   List<Object[]>  objects=new ArrayList<>();
+
+    for(Object object[] : objects )
+    {
+      LOGGER.info(object[0]+" "+object[1]);/
+    }
+ 
+   String
+   _____
+   String
+   _______
+   String
+
+   List<String> stringList=new ArrayList<>();
+---------------------------------------------
+To check the example. Create the database,table and insert the records(Script file is present within the
+project in the resource folder)
+Q How we can execute the script file from the MySQL command prompt.
+1) Go to the MYSQL command prompt after login.
+2) source path\filename
+  example
+  source H:\infosys\spring_26_05_2022\day5\TableScript.sql<Enter>
+
+
+Change the application properties for password.
+
+Execute Spring project.
+--------------------------------------------------------------------------------------------
+               <dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+-------------------------------------------------------------------------------------------------------
+       SELECt substring(c.firstName,1,1),substring(c.middleName,1,1),c.lastName FROM customer c
+--------------------------------------------------------------------------------------------
+@Repository
+public class CustomerRepositoryImpl implements CustomerRepository{
+     @PersistenceContext
+     private EntityManager entityManager;
+     
+     //add customer details
+     public void addCustomer(CustomerDTO customerDTO) {
+		Customer entity=new Customer();
+		entity.setCustomerId(customerDTO.getCustomerId());
+		entity.setDateOfBirth(customerDTO.getDateOfBirth());
+		entity.setEmailId(customerDTO.getEmailId());
+		entity.setName(customerDTO.getName());
+		entityManager.persist(entity);
+	}
+    //fetches customer details based on customerId
+    public CustomerDTO getCustomer(Integer customerId) throws Exception {
+		CustomerDTO customerDTO=null;
+		Customer customer = entityManager.find(Customer.class, customerId);
+		if(customer!=null){
+			customerDTO = new CustomerDTO();
+			customerDTO.setCustomerId(customer.getCustomerId());
+			customerDTO.setDateOfBirth(customer.getDateOfBirth());
+			customerDTO.setEmailId(customer.getEmailId());
+			customerDTO.setName(customer.getName());
+		}
+		return customer;
+	}
+    //update customer email address
+    public void updateCustomer(Integer customerId, String newEmailId) throws Exception {
+		Customer customer = entityManager.find(Customer.class, customerId);
+		customer.setEmailId(newEmailId);
+	}
+    //delete customer detail
+    public Integer deleteCustomer(Integer customerId) throws Exception {
+		Customer customer = entityManager.find(Customer.class, customerId);
+		if(customer!=null){
+		entityManager.remove(customer);
+        }
+	}
+}
+-------------------------------------------------------------------------------------------------------
+In Spring Data:=
+1) We dont write the Implementation of the Repository class but we create an interface which extends 
+   CrudRepository. The CrudRepository includes the mention of two generic types. One is the name of the class
+   which is considered as an entity and the second is the datatype of the attribute which we annotate with @Id.
+
+  public interface StudentRepository extends CrudRepository<Student,Integer>
+  {
+
+  }
+-----------------------------------------------------------------------------------------------
+STEP 1) Let us create a database and a table.
+
+  [Note you can refer myscript.sql]
+-----------------------------------------------------------------------------------------------------
+STEP 2) Create a spring boot project.
+   a) Include the dependencies for JPA and MYSQL driver.
+---------------------------------------------------------------------------------------------------------
+STEP 3) Create the entity and DTO with same structure.
+
+package com.infosys.demo.entity;
+import java.util.Objects;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+
+@Entity
+public class Student {
+	@Id
+	private int roll;
+	private String name;
+	private int marks;
+	public int getRoll() {
+		return roll;
+	}
+	public void setRoll(int roll) {
+		this.roll = roll;
+	}
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
+	}
+	public int getMarks() {
+		return marks;
+	}
+	public void setMarks(int marks) {
+		this.marks = marks;
+	}
+	
+	@Override
+	public int hashCode() {
+		return Objects.hash(marks, name, roll);
+	}
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Student other = (Student) obj;
+		return marks == other.marks && Objects.equals(name, other.name) && roll == other.roll;
+	}
+	@Override
+	public String toString() {
+		return "Student [roll=" + roll + ", name=" + name + ", marks=" + marks + "]";
+	}
+	
+
+}
+
+-------------------------------------------------------------------------------------------------------
+
+STEP 4) Create the Repository interface.
+package com.infosys.demo.repository;
+import org.springframework.data.repository.CrudRepository;
+import org.springframework.stereotype.Repository;
+import com.infosys.demo.entity.Student;
+
+@Repository
+public interface StudentRepository extends CrudRepository<Student, Integer>//It takes the entity class and the data type of its identifier as type arguments. {
+}
+
+-----------------------------------------------------------------------------------------------------------
+STEP 5) Let us autowire the Repo in Spring BootApplication.
+
+package com.infosys.demo;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import com.infosys.demo.entity.Student;
+import com.infosys.demo.repository.StudentRepository;
+
+@SpringBootApplication
+public class Springboot5Application implements CommandLineRunner{
+
+	@Autowired
+	private StudentRepository studentRepository;
+
+	public static void main(String[] args) {
+		SpringApplication.run(Springboot5Application.class, args);
+	
+	}
+	@Override
+	public void run(String... args) throws Exception {
+		 Student student=new Student();
+		 student.setRoll(10);
+		 student.setName("Ram");
+		 student.setMarks(100);
+		 studentRepository.save(student);
+		
+	}
+
+}
+--------------------------------------------------------------------------------------------------------
+STEP 6) Update the application.properties
+
+#MySQL settings
+#Change these settings according to database you are using
+spring.datasource.url=jdbc:mysql://localhost:3306/studentDB
+spring.datasource.username=root
+
+#If MySQL installation is password proctored,then use below property to set password
+spring.datasource.password=password@123
+
+#JPA settings
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.format_sql=true
+------------------------------------------------------------------------------------------------
+
+
+
+
+ 
+
